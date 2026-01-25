@@ -10,13 +10,8 @@ import {
   MoreVertical,
 } from "lucide-react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
 
-export default function SingleSessionPage() {
-  const params = useParams();
-  const shopId = params.shopId;
-  const sessionId = params.sessionId;
-
+export default function SingleSessionPage({ sessionId}) {
   const {
     data: session,
     isLoading,
@@ -29,137 +24,146 @@ export default function SingleSessionPage() {
 
   if (isLoading) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[400px] text-gray-400">
+      <div className="flex flex-col items-center justify-center min-h-[50vh]">
         <Loader2 className="w-10 h-10 animate-spin text-blue-500 mb-4" />
-        <p className="animate-pulse">ჩატის ისტორია იტვირთება...</p>
+        <p className="text-gray-500 mt-3">იტვირთება...</p>
       </div>
     );
   }
 
   if (error || !session) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[400px] p-10 bg-red-50 rounded-3xl border border-red-100 mx-6">
-        <p className="text-red-500 font-medium mb-4">
-          შეცდომა მონაცემების წამოღებისას.
+      <div className="flex flex-col items-center justify-center min-h-[50vh] p-8">
+        <p className="text-red-500 font-medium mb-4 text-center">
+          მონაცემების წამოღება ვერ მოხერხდა
         </p>
         <Link
-          href={`/dashboard/${shopId}/sessions`}
-          className="text-sm text-red-600 underline"
+          href={`/dashboard/${session.shop_id}/sessions`}
+          className="text-blue-600 hover:text-blue-700 transition-colors inline-flex items-center gap-2"
         >
-          უკან დაბრუნება
+          <ArrowLeft className="w-4 h-4" />
+          სესიების სია
         </Link>
       </div>
     );
   }
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8 lg:px-0">
-      {/* Navigation & Header */}
-      <div className="mb-8">
+    <div className="max-w-4xl mx-auto px-3 sm:px-4 md:px-6 py-6 md:py-8 bg-[#efeae2] min-h-screen">
+      {/* Header - kept similar but cleaner */}
+      <div className="mb-6">
         <Link
-          href={`/dashboard/${shopId}/sessions`}
-          className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-blue-600 transition-colors mb-6 group"
+          href={`/dashboard/${session.shop_id}/sessions`}
+          className="inline-flex items-center gap-2 text-gray-700 hover:text-gray-900 mb-5 text-sm font-medium"
         >
-          <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-          სესიების სიაში დაბრუნება
+          <ArrowLeft className="w-5 h-5" />
+          უკან
         </Link>
 
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-3xl shadow-sm border border-gray-100">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-blue-50 rounded-3xl flex items-center justify-center">
-              <User className="w-6 h-6 text-blue-600" />
-            </div>
-            <div>
-              <h1 className="text-xl font-bold text-gray-900 leading-tight">
-                სესია:{" "}
-                <span className="text-blue-600">
-                  {sessionId.slice(-8).toUpperCase()}
-                </span>
-              </h1>
-              <div className="flex items-center gap-2 mt-1">
-                <Calendar className="w-3.5 h-3.5 text-gray-400" />
-                <span className="text-xs text-gray-500">
+        <div className="bg-white rounded-lg shadow-sm border p-4 sm:p-5">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                <User className="w-5 h-5 text-blue-700" />
+              </div>
+              <div>
+                <h1 className="font-semibold text-gray-900 text-lg">
+                  ჩატის სესია #{sessionId.slice(-6).toUpperCase()}
+                </h1>
+                <div className="flex items-center gap-2 text-xs text-gray-600 mt-1">
+                  <Calendar className="w-3.5 h-3.5" />
                   {new Date(session.created_at).toLocaleString("ka-GE", {
                     dateStyle: "long",
                     timeStyle: "short",
                   })}
-                </span>
+                </div>
               </div>
             </div>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <span
-              className={`px-4 py-1.5 rounded-2xl text-xs font-bold uppercase tracking-wider ${
-                session.state === "completed"
-                  ? "bg-green-50 text-green-600 border border-green-100"
-                  : "bg-blue-50 text-blue-600 border border-blue-100"
-              }`}
-            >
-              {session.state}
-            </span>
-            <button className="p-2 hover:bg-gray-50 rounded-xl transition-colors">
-              <MoreVertical className="w-5 h-5 text-gray-400" />
-            </button>
+            <div className="flex items-center gap-3">
+              <span
+                className={`px-3 py-1 rounded-full text-xs font-medium ${
+                  session.state === "completed"
+                    ? "bg-green-100 text-green-700"
+                    : "bg-blue-100 text-blue-700"
+                }`}
+              >
+                {session.state}
+              </span>
+              <button className="p-2 hover:bg-gray-100 rounded-full">
+                <MoreVertical className="w-5 h-5 text-gray-600" />
+              </button>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Chat Messages */}
-      <div className="space-y-6 bg-gray-50/50 p-6 rounded-[2.5rem] border border-gray-100/50">
+      {/* WhatsApp-style chat area */}
+      <div className="space-y-3 sm:space-y-4">
         {session.messages?.map((msg, idx) => {
           const isUser = msg.role === "user";
 
           return (
             <div
               key={idx}
-              className={`flex items-start gap-3 ${isUser ? "justify-start" : "justify-end"}`}
+              className={`flex items-end gap-2 ${isUser ? "justify-start" : "justify-end"}`}
             >
-              {/* User avatar – left side */}
+              {/* Avatar - only on left for user, right for bot */}
               {isUser && (
-                <div className="w-10 h-10 rounded-3xl bg-blue-600 flex items-center justify-center shrink-0 shadow-sm mt-1">
-                  <User className="w-5 h-5 text-white" />
+                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gray-300 flex-shrink-0 mb-1">
+                  <div className="w-full h-full rounded-full flex items-center justify-center bg-blue-500/90">
+                    <User className="w-4 h-4 text-white" />
+                  </div>
                 </div>
               )}
 
-              {/* Message + timestamp */}
-              <div className="flex flex-col space-y-1.5 max-w-[85%] md:max-w-[70%]">
+              <div
+                className={`flex flex-col max-w-[80%] sm:max-w-[70%] ${!isUser ? "items-end" : ""}`}
+              >
+                {/* Bubble – WhatsApp colors + corner cut */}
                 <div
                   className={`
-                    px-5 py-4 rounded-3xl shadow-sm leading-relaxed text-[15px] font-medium whitespace-pre-wrap break-words
+                    px-4 py-2.5 rounded-2xl text-[15px] leading-relaxed shadow-sm
                     ${
                       isUser
-                        ? "bg-white text-gray-800 border border-gray-200 rounded-bl-[20px]"
-                        : "bg-blue-600 text-white rounded-br-[20px]"
+                        ? "bg-[#ffffff] rounded-tl-none border border-gray-200/70"
+                        : "bg-[#d9fdd3] rounded-tr-none"
                     }
                   `}
                 >
                   {msg.content}
                 </div>
 
-                <div
-                  className={`text-[10px] font-medium text-gray-400 uppercase tracking-tighter ${
-                    isUser ? "text-left" : "text-right"
-                  }`}
-                >
-                  {msg.timestamp
-                    ? new Date(msg.timestamp).toLocaleTimeString("ka-GE", {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })
-                    : ""}
-                </div>
+                {/* Timestamp – small, subtle */}
+                {msg.timestamp && (
+                  <span
+                    className={`text-[10px] sm:text-xs text-gray-500 mt-1 px-1 ${
+                      isUser ? "text-left" : "text-right"
+                    }`}
+                  >
+                    {new Date(msg.timestamp).toLocaleTimeString("ka-GE", {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </span>
+                )}
               </div>
 
-              {/* Bot avatar – right side */}
               {!isUser && (
-                <div className="w-10 h-10 rounded-3xl bg-white border border-gray-200 flex items-center justify-center shrink-0 shadow-sm mt-1">
-                  <Bot className="w-5 h-5 text-blue-500" />
+                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gray-300 flex-shrink-0 mb-1">
+                  <div className="w-full h-full rounded-full flex items-center justify-center bg-green-600/90">
+                    <Bot className="w-4 h-4 text-white" />
+                  </div>
                 </div>
               )}
             </div>
           );
         })}
+
+        {(!session.messages || session.messages.length === 0) && (
+          <div className="text-center py-16 text-gray-500 text-sm">
+            ამ სესიაში შეტყობინებები არ არის
+          </div>
+        )}
       </div>
     </div>
   );
