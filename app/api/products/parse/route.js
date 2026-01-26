@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { parseProductFromText } from "@/lib/services/geminiService";
+import { parseProductFromText } from "@/lib/actions/geminiService";
 
 export async function POST(req) {
   try {
@@ -15,7 +15,6 @@ export async function POST(req) {
       );
     }
 
-    
     const result = Array.isArray(productData) ? productData[0] : productData;
 
     return NextResponse.json(result);

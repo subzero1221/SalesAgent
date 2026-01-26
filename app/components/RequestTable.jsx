@@ -53,8 +53,11 @@ export default function RequestTable({ requests }) {
                     <span className="text-sm font-medium text-gray-800">
                       📞 {req.request?.phone || "ნომერი არ არის"}
                     </span>
+                    <span className="text-sm font-medium text-gray-800">
+                      {req.request?.address || "საჭიროება არ არის მითითებული"}
+                    </span>
                     <span className="text-xs text-gray-500 italic">
-                      {req.request?.need || "საჭიროება არ არის მითითებული"}
+                      {req.request?.product || "საჭიროება არ არის მითითებული"}
                     </span>
                   </div>
                 </td>

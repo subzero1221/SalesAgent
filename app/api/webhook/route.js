@@ -1,12 +1,13 @@
 import { NextResponse } from "next/server";
 import { getShopById } from "@/lib/actions/shopActions";
-import { aiResponse } from "@/lib/services/geminiService";
+import { aiResponse } from "@/lib/actions/geminiService";
 import {
   getOrCreateSession,
   saveSessionDraft,
   addMessageToSession,
+  resetSessionState,
 } from "@/lib/actions/sessionActions";
-import { isComplete, mergeWithoutOverwrite } from "@/lib/helpers/tools";
+import { isComplete, smartMergeDraft } from "@/lib/helpers/tools";
 import { extractPhone } from "@/lib/helpers/extractor";
 import { createRequest } from "@/lib/actions/requestActions";
 
@@ -70,6 +71,13 @@ export async function POST(request) {
 
     // 2. სესიის წამოღება ან შექმნა (ეს აუცილებელია!)
     let session = await getOrCreateSession(shopId, senderId);
+    if (session?.state === "completed") {
+      const minutesPast = (new Date() - new Date(session.updated_at)) / 60000;
+
+      if (minutesPast > 1) {
+        session = await resetSessionState(session.id);
+      }
+    }
 
     // 3. ✅ ვინახავთ იუზერის გამოგზავნილ მესიჯს
     await addMessageToSession(shopId, senderId, {
@@ -98,7 +106,7 @@ export async function POST(request) {
       ai = await aiResponse(shop, { ...session, draft }, userText);
 
       if (ai.extracted) {
-        draft = mergeWithoutOverwrite(draft, ai.extracted);
+        draft = smartMergeDraft(draft, ai.extracted);
       }
 
       // ✅ თუ ყველა ველი შევსებულია (Lead Completion)
