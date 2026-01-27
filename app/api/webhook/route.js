@@ -10,6 +10,7 @@ import {
 import { isComplete, smartMergeDraft } from "@/lib/helpers/tools";
 import { extractPhone } from "@/lib/helpers/extractor";
 import { createRequest } from "@/lib/actions/requestActions";
+import { sendOrderNotification } from "@/lib/actions/telegramActions";
 
 export async function GET(request) {
   const { searchParams } = new URL(request.url);
@@ -112,6 +113,16 @@ export async function POST(request) {
       // ✅ თუ ყველა ველი შევსებულია (Lead Completion)
       if (isComplete(shop.required_fields, draft)) {
         await createRequest(shop.id, senderId, draft);
+        
+        if (shop.telegram_chat_id) {
+          await sendOrderNotification(shop.telegram_chat_id, {
+            shopName: shop.name,
+            product: draft.product || "პროდუქტი",
+            phone: draft.phone,
+            address: draft.address || "მისამართი არ წერია",
+          });
+        }
+        
         await saveSessionDraft(shopId, senderId, {}, "completed");
 
         const finalNote =

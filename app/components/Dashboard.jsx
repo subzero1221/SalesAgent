@@ -57,9 +57,8 @@ export default function Dashboard({ shops, requests }) {
           <div className="bg-gray-900 text-white p-8 rounded-3xl flex flex-col justify-center">
             <h3 className="text-xl font-bold mb-2">როგორ მუშაობს?</h3>
             <p className="text-gray-400 text-sm leading-relaxed">
-              უბრალოდ ჩააკოპირე ფეისბუქ პოსტის ტექსტი მარცხენა ველში. ჩვენი
-              ხელოვნური ინტელექტი ავტომატურად ამოიღებს დასახელებას, ფასს და
-              ზომებს.
+              უბრალოდ ჩააკოპირე ფეისბუქ/ინსტაგრამ პოსტის ტექსტი მარცხენა ველში. აგენტი ავტომატურად ამოიღებს დასახელებას, ფასს და
+              ზომებს. სასურველია მიუთითოთ ნივთის დასახელება(ბრენდი/მოდელი), ეს აგენტს გახდის ორმაგად ეფექტურს.
             </p>
             <div className="mt-6 flex gap-2">
               <span className="bg-white/10 px-3 py-1 rounded-full text-[10px]">

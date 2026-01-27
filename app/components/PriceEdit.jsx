@@ -1,7 +1,7 @@
 import { useState } from "react";
 
 // კომპონენტი ფასის სწრაფი შეცვლისთვის
-export function PriceEdit({ id, initialPrice, onUpdate }) {
+export default function PriceEdit({ id, initialPrice, onUpdate }) {
   const [isEditing, setIsEditing] = useState(false);
   const [price, setPrice] = useState(initialPrice);
 
