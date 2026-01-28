@@ -113,16 +113,27 @@ export async function POST(request) {
       // ✅ თუ ყველა ველი შევსებულია (Lead Completion)
       if (isComplete(shop.required_fields, draft)) {
         await createRequest(shop.id, senderId, draft);
-        
+
         if (shop.telegram_chat_id) {
+          // ვაწყობთ დამატებით ინფორმაციას სილამაზისთვის
+          const specsInfo = [];
+          if (draft.quantity > 1)
+            specsInfo.push(`🔢 რაოდენობა: ${draft.quantity}`);
+          if (draft.specs?.color)
+            specsInfo.push(`🎨 ფერი: ${draft.specs.color}`);
+          if (draft.specs?.size) specsInfo.push(`📏 ზომა: ${draft.specs.size}`);
+          if (draft.specs?.volume)
+            specsInfo.push(`🧴 მოცულობა: ${draft.specs.volume}ml`);
+
           await sendOrderNotification(shop.telegram_chat_id, {
             shopName: shop.name,
             product: draft.product || "პროდუქტი",
             phone: draft.phone,
             address: draft.address || "მისამართი არ წერია",
+            details: specsInfo.join("\n"),
           });
         }
-        
+
         await saveSessionDraft(shopId, senderId, {}, "completed");
 
         const finalNote =

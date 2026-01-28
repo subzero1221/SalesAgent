@@ -54,7 +54,7 @@ export default function Dashboard({ shops, requests }) {
             {/* გადავცემთ პირველი მაღაზიის ID-ს (დროებით, სანამ სელექტორს დაამატებ) */}
             <AddProductBox shopId={shops[0]?.id} userId={shops[0]?.user_id} />
           </div>
-          <div className="bg-gray-900 text-white p-8 rounded-3xl flex flex-col justify-center">
+          <div className="bg-gray-900 text-white p-8 self-start rounded-3xl flex flex-col justify-center">
             <h3 className="text-xl font-bold mb-2">როგორ მუშაობს?</h3>
             <p className="text-gray-400 text-sm leading-relaxed">
               უბრალოდ ჩააკოპირე ფეისბუქ/ინსტაგრამ პოსტის ტექსტი მარცხენა ველში. აგენტი ავტომატურად ამოიღებს დასახელებას, ფასს და
