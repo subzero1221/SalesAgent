@@ -1,5 +1,4 @@
 "use client";
-import { colors } from "@/lib/helpers/contexts";
 import { uploadProduct } from "@/lib/services/productService";
 import { supabaseClient } from "@/lib/supabaseClient";
 import { useState } from "react";
@@ -9,6 +8,7 @@ export default function AddProductBox({ shopId }) {
   const [loading, setLoading] = useState(false);
   const [preview, setPreview] = useState(null);
 
+  // 1. AI ექსტრაქტორი
   const handleParse = async () => {
     if (text.length < 10) return;
 
@@ -16,16 +16,12 @@ export default function AddProductBox({ shopId }) {
     try {
       const res = await fetch("/api/products/parse", {
         method: "POST",
-        headers: { "Content-Type": "application/json" }, // აუცილებელია!
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text }),
       });
 
       const data = await res.json();
-      console.log("Response data:", data); // ახლა ნამდვილად უნდა გამოჩნდეს
-
-      if (!res.ok) {
-        throw new Error(data.error || "სერვერის შეცდომა");
-      }
+      if (!res.ok) throw new Error(data.error || "სერვერის შეცდომა");
 
       setPreview(data);
     } catch (err) {
@@ -36,84 +32,119 @@ export default function AddProductBox({ shopId }) {
     }
   };
 
-  const saveProduct = async () => {
-    setLoading(true);
-    let formattedColor = preview.color
-      ? preview.color.trim().replace(/\s+/g, ", ")
-      : "";
-
-    // თუ მაინც ძალიან "მიჭყლეტილია" (მაგ: შავითეთრი)
-    if (preview.color && !colors.includes(preview.color.trim())) {
-      alert("გთხოვთ ფერები მძიმით გამოყოთ (მაგ: შავი, თეთრი)");
-      setLoading(false);
-      return;
+const saveProduct = async () => {
+  setLoading(true);
+  try {
+    // 1. სთოქის დამუშავება (იგივე რჩება)
+    let finalStock = {};
+    if (typeof preview.stock === "object" && preview.stock !== null) {
+      finalStock = preview.stock;
+    } else if (typeof preview.stock === "string") {
+      preview.stock.split(",").forEach((item) => {
+        const key = item.trim();
+        if (key) finalStock[key] = 10;
+      });
     }
 
     const {
       data: { user },
     } = await supabaseClient.auth.getUser();
 
-    const finalProduct = {
-      ...preview,
-      color: formattedColor.replace(/, ,/g, ","),
-    };
+    // 2. ვიზუალების მასივის მომზადება
+    // თუ თეგები გვაქვს, ვიყენებთ მათ. თუ არა - ერთ ცალ null-ს.
+    const visualsToUpload =
+      Array.isArray(preview.visuals) && preview.visuals.length > 0
+        ? preview.visuals
+        : [null];
 
-    const { data, error } = await uploadProduct(
-      finalProduct, // AI-ს მიერ ამოღებული JSON
-      shopId,
-      user.id,
-    );
+    // 3. მასიური ატვირთვა (თითო თეგზე ერთი ჩანაწერი ბაზაში)
+    const uploadPromises = visualsToUpload.map((visual) => {
+      const finalProduct = {
+        name: preview.name,
+        brand: preview.brand,
+        price: parseFloat(preview.price) || 0,
+        description: preview.description,
+        visual_appearance: visual, // აქ ჩაჯდება "აბი" (Badge)
+        stock: finalStock,
+      };
 
-    if (!error) {
-      alert("პროდუქტი ბაზაშია! 🚀");
-      setPreview(null);
+      return uploadProduct(finalProduct, shopId, user.id);
+    });
+
+    const results = await Promise.all(uploadPromises);
+
+    // შეცდომების შემოწმება
+    const errors = results.filter((res) => res.error);
+
+    if (errors.length === 0) {
+      alert(`წარმატებით აიტვირთა ${visualsToUpload.length} ვარიანტი! 🚀`);
+      // ყველაფრის გასუფთავება
+      setPreview({
+        name: "",
+        brand: "",
+        price: "",
+        description: "",
+        visuals: [], // მასივის გასუფთავება
+        stock: "",
+      });
       setText("");
     } else {
-      alert("შეცდომა: " + error);
+      alert(`შეცდომაა ${errors.length} ვარიანტზე. შეამოწმე კონსოლი.`);
+      console.error("Upload Errors:", errors);
     }
+  } catch (err) {
+    console.error("Critical Save Error:", err);
+    alert("ვერ მოხერხდა პროდუქტების შენახვა.");
+  } finally {
     setLoading(false);
-  };
+  }
+};
 
   return (
-    <div className="p-6 bg-white rounded-3xl shadow-sm border border-gray-100">
-      <h3 className="text-lg font-bold mb-4">✨ პროდუქტის სწრაფი დამატება</h3>
+    <div className="p-6 bg-white rounded-3xl shadow-sm border border-gray-100 relative">
+      <h3 className="text-lg font-bold mb-4 flex items-center gap-2 text-gray-800">
+        <span className="text-xl">✨</span> პროდუქტის სწრაფი დამატება
+      </h3>
+
       <textarea
-        className="w-full p-4 bg-gray-50 rounded-2xl border-none focus:ring-2 focus:ring-black mb-4"
+        className="w-full p-4 bg-gray-50 rounded-2xl border-none focus:ring-2 focus:ring-black mb-4 transition-all text-sm outline-none"
         placeholder="ჩააკოპირე ფეისბუქ პოსტის ტექსტი..."
         value={text}
         onChange={(e) => setText(e.target.value)}
         rows={4}
       />
+
       <button
         onClick={handleParse}
-        disabled={loading || !text||!!preview}
-        className="w-full bg-black text-white py-3 rounded-2xl font-bold hover:opacity-80 transition disabled:bg-gray-300"
+        disabled={loading || !text || !!preview}
+        className="w-full bg-black text-white py-3.5 rounded-2xl font-bold hover:opacity-80 transition disabled:bg-gray-200 disabled:text-gray-400"
       >
         {loading ? "მუშავდება..." : "მონაცემების ამოღება"}
       </button>
 
       {preview && (
-        <div className="mt-6 p-5 border-2 border-dashed border-green-200 rounded-3xl bg-green-50/50">
-          <button
-            onClick={() => setPreview(null)}
-            className="absolute top-4 right-4 text-gray-400 hover:text-red-500 transition"
-          >
-            ✕
-          </button>
-          <h4 className="text-sm font-bold text-green-800 mb-4 flex items-center gap-2">
-            ✅ მონაცემები ამოღებულია. გთხოვთ გადაამოწმოთ:
-          </h4>
+        <div className="mt-6 p-5 border-2 border-dashed border-green-200 rounded-3xl bg-green-50/40 animate-in fade-in slide-in-from-top-4">
+          <div className="flex justify-between items-center mb-5">
+            <h4 className="text-xs font-bold text-green-700 tracking-wide uppercase">
+              ✅ გადაამოწმეთ მონაცემები
+            </h4>
+            <button
+              onClick={() => setPreview(null)}
+              className="text-gray-400 hover:text-red-500 transition text-xs font-bold"
+            >
+              გაუქმება
+            </button>
+          </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* სახელი (Brand + Model) */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            {/* სახელი */}
             <div className="md:col-span-2">
               <label className="text-[10px] uppercase tracking-wider text-gray-500 font-bold ml-1">
                 პროდუქტის დასახელება
               </label>
               <input
-                className="w-full p-3 bg-white rounded-xl border border-gray-200 focus:ring-2 focus:ring-green-500 outline-none transition"
+                className="w-full p-3 bg-white rounded-xl border border-gray-100 focus:border-green-400 focus:ring-2 focus:ring-green-100 outline-none transition"
                 value={preview.name || ""}
-                placeholder="მაგ: Adidas Terrex X40"
                 onChange={(e) =>
                   setPreview({ ...preview, name: e.target.value })
                 }
@@ -127,9 +158,8 @@ export default function AddProductBox({ shopId }) {
               </label>
               <input
                 type="number"
-                className="w-full p-3 bg-white rounded-xl border border-gray-200 focus:ring-2 focus:ring-green-500 outline-none"
+                className="w-full p-3 bg-white rounded-xl border border-gray-100 focus:border-green-400 focus:ring-2 focus:ring-green-100 outline-none transition"
                 value={preview.price || ""}
-                placeholder="0.00"
                 onChange={(e) =>
                   setPreview({ ...preview, price: e.target.value })
                 }
@@ -142,66 +172,111 @@ export default function AddProductBox({ shopId }) {
                 ბრენდი
               </label>
               <input
-                className="w-full p-3 bg-white rounded-xl border border-gray-200 focus:ring-2 focus:ring-green-500 outline-none"
+                className="w-full p-3 bg-white rounded-xl border border-gray-100 focus:border-green-400 focus:ring-2 focus:ring-green-100 outline-none transition"
                 value={preview.brand || ""}
-                placeholder="მაგ: Nike, Apple..."
                 onChange={(e) =>
                   setPreview({ ...preview, brand: e.target.value })
                 }
               />
             </div>
 
-            {/* ვარიაციები: ფერი და მოცულობა/ზომა */}
+            {/* ფერები */}
             <div>
-              <label className="text-[10px] uppercase tracking-wider text-gray-500 font-bold ml-1">
-                ფერები (მძიმით)
+              <label className="text-[9px] uppercase tracking-wider text-gray-500 font-bold ml-1">
+                ვიზუალური მახასიათებლები (Enter ან მძიმე დასამატებლად)
               </label>
-              <input
-                className="w-full p-3 bg-white rounded-xl border border-gray-200 focus:ring-2 focus:ring-green-500 outline-none"
-                value={preview.color || ""}
-                placeholder="შავი, თეთრი..."
-                onChange={(e) =>
-                  setPreview({ ...preview, color: e.target.value })
-                }
-              />
+              <div className="flex flex-wrap gap-2 p-2 bg-white rounded-xl border border-gray-100 min-h-[50px] focus-within:border-green-400 transition">
+                {/* აქ გამოჩნდება უკვე დამატებული თეგები */}
+                {(Array.isArray(preview.visuals) ? preview.visuals : []).map(
+                  (tag, index) => (
+                    <span
+                      key={index}
+                      className="flex items-center gap-1 px-3 py-1 bg-green-50 text-green-700 text-sm rounded-lg border border-green-100"
+                    >
+                      {tag}
+                      <button
+                        onClick={() => {
+                          const newVisuals = preview.visuals.filter(
+                            (_, i) => i !== index,
+                          );
+                          setPreview({ ...preview, visuals: newVisuals });
+                        }}
+                        className="hover:text-red-500 font-bold ml-1"
+                      >
+                        ×
+                      </button>
+                    </span>
+                  ),
+                )}
+
+                {/* რეალური ინპუტი თეგების ჩასაწერად */}
+                <input
+                  className="flex-1 outline-none p-1 min-w-[120px] text-sm"
+                  placeholder={
+                    !preview.visuals || preview.visuals.length === 0
+                      ? "მაგ: შავი, თეთრი..."
+                      : ""
+                  }
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === ",") {
+                      e.preventDefault();
+                      const value = e.target.value.trim().replace(",", "");
+                      if (value) {
+                        const currentVisuals = Array.isArray(preview.visuals)
+                          ? preview.visuals
+                          : [];
+                        setPreview({
+                          ...preview,
+                          visuals: [...currentVisuals, value],
+                        });
+                        e.target.value = ""; // ინპუტის გასუფთავება
+                      }
+                    }
+                  }}
+                />
+              </div>
             </div>
 
-            {preview.stock?.sizes && (
-              <div>
-                <label className="text-xs font-bold text-gray-400 uppercase">
-                  ზომები
-                </label>
-                <input
-                  className="w-full p-3 bg-white rounded-xl border border-gray-100"
-                  value={preview.stock.sizes}
-                  onChange={(e) =>
-                    setPreview({
-                      ...preview,
-                      stock: { ...preview.stock, sizes: e.target.value },
-                    })
-                  }
-                />
-              </div>
-            )}
+            {/* ვარიაციები: ზომა ან მოცულობა */}
+            <div>
+              <label className="text-[10px] uppercase tracking-wider text-gray-500 font-bold ml-1">
+                ზომები / მოცულობა
+              </label>
+              <input
+                className="w-full p-3 bg-white rounded-xl border border-gray-100 focus:border-green-400 focus:ring-2 focus:ring-green-100 outline-none transition"
+                // თუ stock ობიექტია, ვაქცევთ ტექსტად (L, XL), თუ ტექსტია - ვტოვებთ ტექსტად
+                value={
+                  typeof preview.stock === "object" && preview.stock !== null
+                    ? Object.keys(preview.stock).join(", ")
+                    : preview.stock || ""
+                }
+                placeholder="მაგ: 40, 42 ან 50ml, 100ml"
+                onChange={(e) =>
+                  setPreview({
+                    ...preview,
+                    stock: e.target.value, // აქ ვინახავთ ტექსტად, რომ წაშლა/დამატება შეძლო
+                  })
+                }
+              />
 
-            {/* მოცულობის ველი - გამოჩნდება მხოლოდ თუ AI-მ იპოვა რამე */}
-            {preview.stock?.volumes && (
-              <div>
-                <label className="text-xs font-bold text-gray-400 uppercase">
-                  მოცულობა / ლიტრაჟი
-                </label>
-                <input
-                  className="w-full p-3 bg-white rounded-xl border border-gray-100"
-                  value={preview.stock.volumes}
-                  onChange={(e) =>
-                    setPreview({
-                      ...preview,
-                      stock: { ...preview.stock, volumes: e.target.value },
-                    })
-                  }
-                />
+              {/* Badge-ების ვიზუალიზაცია ობიექტიდან გამომდინარე */}
+              <div className="flex flex-wrap gap-1.5 mt-2 ml-1">
+                {(typeof preview.stock === "object" && preview.stock !== null
+                  ? Object.keys(preview.stock)
+                  : (preview.stock || "").split(",")
+                )
+                  .map((s) => s.toString().trim())
+                  .filter((s) => s !== "")
+                  .map((item, idx) => (
+                    <span
+                      key={idx}
+                      className="bg-green-100 text-green-700 text-[10px] px-2 py-0.5 rounded-lg border border-green-200 font-black"
+                    >
+                      {item}
+                    </span>
+                  ))}
               </div>
-            )}
+            </div>
 
             {/* აღწერა */}
             <div className="md:col-span-2">
@@ -209,7 +284,7 @@ export default function AddProductBox({ shopId }) {
                 მოკლე აღწერა
               </label>
               <textarea
-                className="w-full p-3 bg-white rounded-xl border border-gray-200 focus:ring-2 focus:ring-green-500 outline-none"
+                className="w-full p-3 bg-white rounded-xl border border-gray-100 focus:border-green-400 focus:ring-2 focus:ring-green-100 outline-none transition"
                 value={preview.description || ""}
                 onChange={(e) =>
                   setPreview({ ...preview, description: e.target.value })
@@ -222,16 +297,10 @@ export default function AddProductBox({ shopId }) {
           <button
             onClick={saveProduct}
             disabled={loading || !preview.name || !preview.price}
-            className="mt-6 w-full bg-green-600 text-white py-4 rounded-2xl font-bold hover:bg-green-700 transition shadow-lg shadow-green-200 disabled:bg-gray-300 disabled:shadow-none"
+            className="mt-6 w-full bg-green-600 text-white py-4 rounded-2xl font-black hover:bg-green-700 transition shadow-lg shadow-green-200 disabled:bg-gray-300 disabled:shadow-none"
           >
             {loading ? "ინახება..." : "ბაზაში დამატება 🚀"}
           </button>
-
-          {(!preview.name || !preview.price) && (
-            <p className="text-[10px] text-red-500 mt-2 text-center font-medium">
-              * პროდუქტის სახელი და ფასი აუცილებელია
-            </p>
-          )}
         </div>
       )}
     </div>
