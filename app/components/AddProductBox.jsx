@@ -53,8 +53,8 @@ const saveProduct = async () => {
     // 2. ვიზუალების მასივის მომზადება
     // თუ თეგები გვაქვს, ვიყენებთ მათ. თუ არა - ერთ ცალ null-ს.
     const visualsToUpload =
-      Array.isArray(preview.visuals) && preview.visuals.length > 0
-        ? preview.visuals
+      Array.isArray(preview.visual_appearance) && preview.visual_appearance.length > 0
+        ? preview.visual_appearance
         : [null];
 
     // 3. მასიური ატვირთვა (თითო თეგზე ერთი ჩანაწერი ბაზაში)
@@ -84,7 +84,7 @@ const saveProduct = async () => {
         brand: "",
         price: "",
         description: "",
-        visuals: [], // მასივის გასუფთავება
+        visual_appearance: [], // მასივის გასუფთავება
         stock: "",
       });
       setText("");
@@ -187,7 +187,7 @@ const saveProduct = async () => {
               </label>
               <div className="flex flex-wrap gap-2 p-2 bg-white rounded-xl border border-gray-100 min-h-[50px] focus-within:border-green-400 transition">
                 {/* აქ გამოჩნდება უკვე დამატებული თეგები */}
-                {(Array.isArray(preview.visuals) ? preview.visuals : []).map(
+                {(Array.isArray(preview.visual_appearance) ? preview.visual_appearance : []).map(
                   (tag, index) => (
                     <span
                       key={index}
@@ -196,12 +196,12 @@ const saveProduct = async () => {
                       {tag}
                       <button
                         onClick={() => {
-                          const newVisuals = preview.visuals.filter(
+                          const newVisuals = preview.visual_appearance.filter(
                             (_, i) => i !== index,
                           );
-                          setPreview({ ...preview, visuals: newVisuals });
+                          setPreview({ ...preview, visual_appearance: newVisuals });
                         }}
-                        className="hover:text-red-500 font-bold ml-1"
+                        className="hover:text-red-500 font-bold ml-1 cursor-pointer text-xs"
                       >
                         ×
                       </button>
@@ -213,7 +213,7 @@ const saveProduct = async () => {
                 <input
                   className="flex-1 outline-none p-1 min-w-[120px] text-sm"
                   placeholder={
-                    !preview.visuals || preview.visuals.length === 0
+                    !preview.visual_appearance || preview.visual_appearance.length === 0
                       ? "მაგ: შავი, თეთრი..."
                       : ""
                   }
@@ -222,12 +222,12 @@ const saveProduct = async () => {
                       e.preventDefault();
                       const value = e.target.value.trim().replace(",", "");
                       if (value) {
-                        const currentVisuals = Array.isArray(preview.visuals)
-                          ? preview.visuals
+                        const currentVisuals = Array.isArray(preview.visual_appearance)
+                          ? preview.visual_appearance
                           : [];
                         setPreview({
                           ...preview,
-                          visuals: [...currentVisuals, value],
+                          visual_appearance: [...currentVisuals, value],
                         });
                         e.target.value = ""; // ინპუტის გასუფთავება
                       }
@@ -297,7 +297,7 @@ const saveProduct = async () => {
           <button
             onClick={saveProduct}
             disabled={loading || !preview.name || !preview.price}
-            className="mt-6 w-full bg-green-600 text-white py-4 rounded-2xl font-black hover:bg-green-700 transition shadow-lg shadow-green-200 disabled:bg-gray-300 disabled:shadow-none"
+            className="mt-6 w-full cursor-pointer bg-green-600 text-white py-4 rounded-2xl font-black hover:bg-green-700 transition shadow-lg shadow-green-200 disabled:bg-gray-300 disabled:shadow-none"
           >
             {loading ? "ინახება..." : "ბაზაში დამატება 🚀"}
           </button>

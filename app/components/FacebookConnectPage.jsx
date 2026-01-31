@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { supabaseAuth } from "@/lib/supabaseClient";
+import { supabaseClient } from "@/lib/supabaseClient";
 import FacebookLoginPage from "./FacebookLoginPage";
 
 export default function FacebookConnectPage() {
@@ -12,7 +12,7 @@ export default function FacebookConnectPage() {
       const {
         data: { user },
         error,
-      } = await supabaseAuth.auth.getUser();
+      } = await supabaseClient.auth.getUser();
 
       if (user) {
         setUserId(user.id); // ვინახავთ ID-ს State-ში

@@ -27,7 +27,7 @@ export default function FacebookLoginButton({userId}) {
   return (
     <button
       onClick={handleLogin}
-      className="group relative w-full flex justify-center py-4 px-4 border border-transparent text-sm font-bold rounded-xl text-white bg-[#1877F2] hover:bg-[#166fe5] focus:outline-none transition-all duration-200 transform hover:-translate-y-0.5 shadow-lg active:scale-95"
+      className="group relative cursor-pointer w-full flex justify-center py-4 px-4 border border-transparent text-sm font-bold rounded-xl text-white bg-[#1877F2] hover:bg-[#166fe5] focus:outline-none transition-all duration-200 transform hover:-translate-y-0.5 shadow-lg active:scale-95"
     >
       <span className="absolute left-0 inset-y-0 flex items-center pl-4">
         <svg className="h-5 w-5 fill-current" viewBox="0 0 24 24">

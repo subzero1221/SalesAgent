@@ -18,9 +18,9 @@ export default function Dashboard({ shops, requests }) {
               მართე შენი მაღაზიები და მოთხოვნები
             </p>
           </div>
-          <button className="bg-black text-white px-6 py-3 rounded-full text-sm font-bold hover:bg-gray-800 transition-all shadow-lg shadow-gray-200">
+          <Link href="/facebook-connect" className="bg-black text-white px-6 cursor-pointer py-3 rounded-full text-sm font-bold hover:bg-gray-800 transition-all shadow-lg shadow-gray-200">
             + ახალი მაღაზია
-          </button>
+          </Link>
         </div>
 
         {/* Shops Grid */}

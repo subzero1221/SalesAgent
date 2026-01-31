@@ -5,7 +5,7 @@ export default function FacebookLoginPage({userId}) {
     <div className="min-h-screen bg-[#f8fafc] flex flex-col justify-center py-12 sm:px-6 lg:px-8 font-sans">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <h2 className="text-center text-4xl font-extrabold text-gray-900 tracking-tight">
-          Beso<span className="text-blue-600">AI</span>
+          Sales<span className="text-blue-600">Agent</span>
         </h2>
         <p className="mt-2 text-center text-sm text-gray-600">
           გაამარტივე მომხმარებელთან კომუნიკაცია ხელოვნური ინტელექტით

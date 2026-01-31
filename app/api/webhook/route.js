@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
-import { getShopById } from "@/lib/actions/shopActions";
+import { getShopByFacebookId } from "@/lib/actions/shopActions";
 import { aiResponse } from "@/lib/actions/geminiService";
+import { waitUntil } from "@vercel/functions"; 
 import {
   getOrCreateSession,
   saveSessionDraft,
@@ -11,6 +12,7 @@ import { isComplete, smartMergeDraft } from "@/lib/helpers/tools";
 import { extractPhone } from "@/lib/helpers/extractor";
 import { createRequest } from "@/lib/actions/requestActions";
 import { sendOrderNotification } from "@/lib/actions/telegramActions";
+import { supabaseAdmin } from "@/lib/supabaseAdmin";
 
 export async function GET(request) {
   const { searchParams } = new URL(request.url);
@@ -46,133 +48,152 @@ async function sendToMeta(facebookAccessToken, senderId, text) {
   if (result.error) console.error("Meta Send Error:", result.error);
 }
 
+
 export async function POST(request) {
   try {
     const body = await request.json();
 
-    const entry = body.entry?.[0];
-    const messaging = entry?.messaging?.[0];
-    const senderId = messaging?.sender?.id;
-    const userText = messaging?.message?.text;
-    const facebookPageId = entry?.id;
+    // 🛑 ეგრევე ვაბრუნებთ პასუხს Meta-სთვის, რომ არ დაგვბლოკოს
+    const response = NextResponse.json({ status: "EVENT_RECEIVED" });
 
-    if (!userText || !senderId) {
-      return NextResponse.json({ status: "no message" });
-    }
+    // 🚀 ფონურ რეჟიმში ვუშვებთ დამუშავებას
+    waitUntil(
+      handleChatLogic(body)
+        .then(() => console.log("✅ Message processed"))
+        .catch((err) => console.error("❌ Background Error:", err)),
+    );
 
-    // 1. მაღაზიის პოვნა
-    const shop = await getShopById(facebookPageId);
-    if (!shop) {
-      console.error(`❌ Shop not found for Page ID: ${facebookPageId}`);
-      return NextResponse.json({ status: "shop not found" }, { status: 404 });
-    }
-
-    const shopId = shop.id;
-    const facebookAccessToken = shop.facebook_access_token;
-
-    // 2. სესიის წამოღება ან შექმნა (ეს აუცილებელია!)
-    let session = await getOrCreateSession(shopId, senderId);
-    if (session?.state === "completed") {
-      const minutesPast = (new Date() - new Date(session.updated_at)) / 60000;
-
-      if (minutesPast > 1) {
-        session = await resetSessionState(session.id);
-      }
-    }
-
-    // 3. ✅ ვინახავთ იუზერის გამოგზავნილ მესიჯს
-    await addMessageToSession(shopId, senderId, {
-      role: "user",
-      content: userText,
-    });
-
-    // 🛑 თუ ჩატი დასრულებულია, აღარ ვაწვალებთ AI-ს
-    if (session.state === "completed") {
-      await sendToMeta(
-        facebookAccessToken,
-        senderId,
-        "მოთხოვნა უკვე მივიღეთ 😊 მალე დაგიკავშირდებიან.",
-      );
-      return NextResponse.json({ status: "already_completed" });
-    }
-
-    // 4. AI ლოგიკა
-    let ai;
-    try {
-      let draft = { ...(session.draft ?? {}) };
-      const phone = extractPhone(userText);
-      if (!draft.phone && phone) draft.phone = phone;
-
-      // Gemini-ს ვაწვდით სესიას, რომელშიც უკვე არის წინა მესიჯები (კონტექსტისთვის)
-      ai = await aiResponse(shop, { ...session, draft }, userText);
-
-      if (ai.extracted) {
-        draft = smartMergeDraft(draft, ai.extracted);
-      }
-
-      // ✅ თუ ყველა ველი შევსებულია (Lead Completion)
-      if (isComplete(shop.required_fields, draft)) {
-        await createRequest(shop.id, senderId, draft);
-
-        if (shop.telegram_chat_id) {
-          // ვაწყობთ დამატებით ინფორმაციას სილამაზისთვის
-          const specsInfo = [];
-          if (draft.quantity > 1)
-            specsInfo.push(`🔢 რაოდენობა: ${draft.quantity}`);
-          if (draft.specs?.color)
-            specsInfo.push(`🎨 ფერი: ${draft.specs.color}`);
-          if (draft.specs?.size) specsInfo.push(`📏 ზომა: ${draft.specs.size}`);
-          if (draft.specs?.volume)
-            specsInfo.push(`🧴 მოცულობა: ${draft.specs.volume}ml`);
-
-          await sendOrderNotification(shop.telegram_chat_id, {
-            shopName: shop.name,
-            product: draft.product || "პროდუქტი",
-            phone: draft.phone,
-            address: draft.address || "მისამართი არ წერია",
-            details: specsInfo.join("\n"),
-          });
-        }
-
-        await saveSessionDraft(shopId, senderId, {}, "completed");
-
-        const finalNote =
-          "მადლობა 🙌 მოთხოვნა მივიღეთ და მალე დაგიკავშირდებიან.";
-        await addMessageToSession(shopId, senderId, {
-          role: "model",
-          content: finalNote,
-        });
-        await sendToMeta(facebookAccessToken, senderId, finalNote);
-
-        return NextResponse.json({ status: "completed" });
-      }
-
-      // პროგრესის შენახვა
-      await saveSessionDraft(shopId, senderId, draft, "collecting");
-    } catch (aiErr) {
-      console.error("❌ AI Error:", aiErr.message);
-      await sendToMeta(
-        facebookAccessToken,
-        senderId,
-        "ბოდიში, ტექნიკური ხარვეზია. ცოტა ხანში შემეხმიანე.",
-      );
-      return NextResponse.json({ status: "ai_fail" });
-    }
-
-    // 5. ბოტის პასუხის შენახვა და გაგზავნა
-    const botReply = ai.reply || "ვერ გავიგე 😅 გთხოვ დამიზუსტე რას გულისხმობ?";
-
-    // ✅ ვინახავთ ბოტის პასუხსაც ისტორიაში
-    await addMessageToSession(shopId, senderId, {
-      role: "model",
-      content: botReply,
-    });
-
-    await sendToMeta(facebookAccessToken, senderId, botReply);
-
-    return NextResponse.json({ status: "ok" });
-  } catch (globalErr) {
-    console.error("🚨 CRITICAL ERROR:", globalErr.message);
+    return response;
+  } catch (error) {
+    console.error("Webhook POST Error:", error);
     return NextResponse.json({ error: "Internal Error" }, { status: 500 });
   }
 }
+
+ async function handleChatLogic(body) {
+   const entry = body.entry?.[0];
+   const messaging = entry?.messaging?.[0];
+   const senderId = messaging?.sender?.id;
+   const userText = messaging?.message?.text;
+   const facebookPageId = entry?.id;
+
+   if (!userText || !senderId) return;
+
+   // 1. მაღაზიის პოვნა
+   const shop = await getShopByFacebookId(facebookPageId);
+   if (!shop) return;
+
+   const { id: shopId, facebook_access_token: token } = shop;
+
+   // 🚀 2. კვოტის შემოწმება (ჩემი ჩამატებული)
+   const { data: quota, error: quotaErr } = await supabaseAdmin.rpc(
+     "handle_shop_quota_v2",
+     {
+       shop_id: shopId,
+     },
+   );
+
+   if (quotaErr || !quota) {
+     console.error("❌ Quota RPC failed:", quotaErr);
+   }
+
+   if (quota?.can_proceed === false) {
+     const quotaMsg =
+       quota.reason === "plan_expired"
+         ? "პლანს ვადა გაუვიდა ⏳"
+         : "ლიმიტი ამოიწურა 🛑";
+     await sendToMeta(token, senderId, quotaMsg);
+     return;
+   }
+
+   // 3. სესიის მართვა
+   let session = await getOrCreateSession(shopId, senderId);
+   if (session?.state === "completed") {
+     const minutesPast = (new Date() - new Date(session.updated_at)) / 60000;
+     if (minutesPast > 1) {
+       session = await resetSessionState(session.id);
+     } else {
+       await sendToMeta(
+         token,
+         senderId,
+         "მოთხოვნა უკვე მივიღეთ 😊 მალე დაგიკავშირდებიან.",
+       );
+       return;
+     }
+   }
+
+   // 4. იუზერის მესიჯის შენახვა
+   await addMessageToSession(shopId, senderId, {
+     role: "user",
+     content: userText,
+   });
+
+   // 5. AI და ბიზნეს ლოგიკა (შენი ორიგინალი)
+   try {
+     let draft = { ...(session.draft ?? {}) };
+     const phone = extractPhone(userText);
+     if (!draft.phone && phone) draft.phone = phone;
+
+     // Gemini-ს გამოძახება
+     const ai = await aiResponse(shop, { ...session, draft }, userText);
+
+     if (ai.extracted) {
+       draft = smartMergeDraft(draft, ai.extracted);
+     }
+
+     // ✅ LEAD COMPLETION (შენი ლოგიკა)
+     if (isComplete(shop.required_fields, draft)) {
+       await createRequest(shopId, senderId, draft);
+
+       if (shop.telegram_chat_id) {
+         const specsInfo = [];
+         if (draft.quantity > 1)
+           specsInfo.push(`🔢 რაოდენობა: ${draft.quantity}`);
+         if (draft.specs?.visual_appearance)
+           specsInfo.push(`🎨 ფერი: ${draft.specs.visual_appearance}`);
+         if (draft.specs?.size) specsInfo.push(`📏 ზომა: ${draft.specs.size}`);
+         if (draft.specs?.volume)
+           specsInfo.push(`🧴 მოცულობა: ${draft.specs.volume}ml`);
+
+         await sendOrderNotification(shop.telegram_chat_id, {
+           shopName: shop.name,
+           product: draft.product || "პროდუქტი",
+           phone: draft.phone,
+           address: draft.address || "მისამართი არ წერია",
+           details: specsInfo.join("\n"),
+         });
+       }
+
+       // სესიის დასრულება
+       await saveSessionDraft(shopId, senderId, {}, "completed");
+
+       const finalNote =
+         "მადლობა 🙌 მოთხოვნა მივიღეთ და მალე დაგიკავშირდებიან.";
+       await addMessageToSession(shopId, senderId, {
+         role: "model",
+         content: finalNote,
+       });
+       await sendToMeta(token, senderId, finalNote);
+       return;
+     }
+
+     // პროგრესის შენახვა (თუ არ დასრულებულა)
+     await saveSessionDraft(shopId, senderId, draft, "collecting");
+
+     // პასუხის გაგზავნა
+     const botReply =
+       ai.reply || "ვერ გავიგე 😅 გთხოვ დამიზუსტე რას გულისხმობ?";
+     await addMessageToSession(shopId, senderId, {
+       role: "model",
+       content: botReply,
+     });
+     await sendToMeta(token, senderId, botReply);
+   } catch (aiErr) {
+     console.error("❌ AI/Business Error:", aiErr);
+     await sendToMeta(
+       token,
+       senderId,
+       "ბოდიში, ტექნიკური ხარვეზია. ცოტა ხანში შემეხმიანე.",
+     );
+   }
+ }
