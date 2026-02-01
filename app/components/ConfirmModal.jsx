@@ -10,14 +10,8 @@ export default function ConfirmModal({ isOpen, onClose, title, children }) {
 
       <div className="bg-white rounded-[2rem] w-full max-w-md shadow-2xl relative overflow-hidden animate-in fade-in zoom-in duration-200">
         {/* Header */}
-        <div className="px-8 pt-8 pb-4 flex justify-between items-center">
+        <div className="px-8 pt-8 pb-4 flex justify-center items-center">
           <h3 className="text-2xl font-bold text-gray-900">{title}</h3>
-          <button
-            onClick={onClose}
-            className="p-2 hover:bg-gray-100 cursor-pointer rounded-full transition-colors text-gray-400 hover:text-gray-600"
-          >
-            ✕
-          </button>
         </div>
 
         {/* Content */}

@@ -85,7 +85,11 @@ export async function POST(request) {
 
    const { id: shopId, facebook_access_token: token } = shop;
 
-   // 🚀 2. კვოტის შემოწმება (ჩემი ჩამატებული)
+   if (shop.bot_enabled === false) {
+     console.log(`ℹ️ ბოტი გათიშულია მაღაზიისთვის: ${shop.name}`);
+     return; 
+   }  
+
    const { data: quota, error: quotaErr } = await supabaseAdmin.rpc(
      "handle_shop_quota_v2",
      {
