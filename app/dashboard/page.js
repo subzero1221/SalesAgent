@@ -8,8 +8,12 @@ export const metadata = {
 };
 
 export default async function DashboradPage() {
-  const shops = await getMyShops();
-  const requests = await getRecentRequests();
+
+
+  const [shops, requests] = await Promise.all([
+    getMyShops(),
+    getRecentRequests(),
+  ]);
 
   return <Dashboard shops={shops} requests={requests} />;
 }

@@ -90,25 +90,29 @@ export async function POST(request) {
      return; 
    }  
 
-   const { data: quota, error: quotaErr } = await supabaseAdmin.rpc(
-     "handle_shop_quota_v2",
-     {
-       shop_id: shopId,
-     },
-   );
+const { data: quota, error: quotaErr } = await supabaseAdmin.rpc(
+  "check_shop_quota", 
+  {
+    target_shop_id: shop.id, 
+  },
+);
 
-   if (quotaErr || !quota) {
-     console.error("❌ Quota RPC failed:", quotaErr);
-   }
+if (quotaErr || !quota) {
+  console.error("❌ Quota RPC failed:", quotaErr);
+ 
+  return;
+}
 
-   if (quota?.can_proceed === false) {
-     const quotaMsg =
-       quota.reason === "plan_expired"
-         ? "პლანს ვადა გაუვიდა ⏳"
-         : "ლიმიტი ამოიწურა 🛑";
-     await sendToMeta(token, senderId, quotaMsg);
-     return;
-   }
+// ვამოწმებთ პასუხს
+if (quota.can_proceed === false) {
+  const quotaMsg =
+    quota.reason === "plan_expired"
+      ? "თქვენს პლანს ვადა გაუვიდა ⏳. გთხოვთ განაახლოთ გამოწერა."
+      : "თვიური ლიმიტი ამოიწურა 🛑. გთხოვთ გადახვიდეთ უფრო მაღალ პლანზე.";
+
+  await sendToMeta(token, senderId, quotaMsg);
+  return;
+}
 
    // 3. სესიის მართვა
    let session = await getOrCreateSession(shopId, senderId);

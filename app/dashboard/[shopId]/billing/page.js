@@ -1,11 +1,11 @@
 import BillingPageRenderer from "@/app/components/BillingPageRenderer";
-import { getShopById } from "@/lib/actions/shopActions";
+import {getShopWithActiveSubscription } from "@/lib/actions/shopActions";
 
 export default async function BillingPages({ params }) {
   const resolvedParams = await params;
   const shopId = resolvedParams.shopId;
 
-  const shop = await getShopById(shopId);
+  const shop = await getShopWithActiveSubscription(shopId);
 
   // თუ მაღაზია ვერ მოიძებნა, რენდერერამდე ნუ მიუშვებ
   if (!shop) {
