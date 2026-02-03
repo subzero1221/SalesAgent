@@ -26,7 +26,7 @@ export default function BillingPageRenderer({ shop }) {
     {
       name: "starter",
       label: "Starter",
-      price: "49",
+      price: "79",
       limit: "1,000",
       products: "100",
       features: ["1,000 AI პასუხი", "100 პროდუქტი", "პრიორიტეტული მხარდაჭერა"],
@@ -36,7 +36,7 @@ export default function BillingPageRenderer({ shop }) {
     {
       name: "pro",
       label: "Pro",
-      price: "149",
+      price: "179",
       limit: "3,000",
       products: "200",
       features: ["3,000 AI პასუხი", "200 პროდუქტი", "Facebook + Instagram"],

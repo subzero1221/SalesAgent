@@ -66,7 +66,7 @@ export default function PricingCard({ plan, isCurrent, shopId }) {
           {plan.label || plan.name}
         </h3>
         <div className="flex items-baseline gap-1 mb-6">
-          <span className="text-4xl font-black">${plan.price}</span>
+          <span className="text-4xl font-black">₾{plan.price}</span>
           <span className="text-gray-400 text-sm font-medium">/თვეში</span>
         </div>
 

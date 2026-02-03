@@ -1,19 +1,29 @@
+import { redirect } from "next/navigation";
+import FacebookConnectPage from "../components/FacebookConnectPage";
 import { getMyShops } from "@/lib/actions/shopActions";
-import Dashboard from "../components/Dashboard";
 import { getRecentRequests } from "@/lib/actions/requestActions";
+import { createClient } from "@/lib/supabaseServer";
 
-export const metadata = {
-  title: "Sales Agent / dashboard",
-  description: "My Sales Bot - AI Sales Assistant for E-commerce Businesses",
-};
 
-export default async function DashboradPage() {
+export default async function DashboardPage() {
 
+   const supabase = await createClient();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+ 
 
   const [shops, requests] = await Promise.all([
-    getMyShops(),
-    getRecentRequests(),
-  ]);
+     getMyShops(),
+     getRecentRequests(),
+   ]);
 
-  return <Dashboard shops={shops} requests={requests} />;
+  if (shops && shops.length > 0) {
+    // თუ აქვს მაღაზიები, გადამისამართე პირველ მაღაზიაზე სესიების გვერდზე
+    const firstShopId = shops[0].id;
+    redirect(`/dashboard/user/${user.id}/shop/${firstShopId}/sessions`);
+  }
+
+  // თუ არ აქვს, აჩვენე მაღაზიის შექმნის გვერდი
+  return <FacebookConnectPage />;
 }

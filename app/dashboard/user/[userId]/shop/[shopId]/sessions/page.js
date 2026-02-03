@@ -1,4 +1,3 @@
-
 import SessionsPage from "@/app/components/SessionsPage";
 export const metadata = {
   title: "Sales Agent / sessions",
@@ -6,7 +5,7 @@ export const metadata = {
 };
 
 export default async function Page({ params }) {
-  const { shopId } = await params;
+  const { userId, shopId } = await params;
 
   return <SessionsPage shopId={shopId} />;
 }

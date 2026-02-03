@@ -30,7 +30,7 @@ export default async function Header() {
         {/* Navigation */}
         <nav className="flex items-center gap-6">
           <Link
-            href="/pricing"
+            href="/billing"
             className="hidden sm:block text-sm font-medium text-gray-500 hover:text-gray-900 transition-colors"
           >
             ფასები

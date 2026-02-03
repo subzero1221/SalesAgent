@@ -11,14 +11,14 @@ import {
   Check,
 } from "lucide-react";
 
-export default function UserNav({ user, shops }) {
+export default function 
+UserNav({ user, shops }) {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
   const router = useRouter();
   const pathname = usePathname();
 
-  // ვიპოვოთ აქტიური მაღაზია URL-იდან გამომდინარე
-  // თუ URL-ში გვაქვს /dashboard/[id]/..., ამოვიღოთ ეგ ID
+ 
   const currentShopId = pathname.split("/")[2];
   const selectedShop =
     shops.find((s) => s.id === currentShopId) || shops[0] || null;
@@ -34,11 +34,11 @@ export default function UserNav({ user, shops }) {
   }, []);
 
   const handleShopSwitch = (shop) => {
-    // 1. გავიგოთ მიმდინარე გვერდის ტიპი (sessions, products თუ requests)
-    const pathParts = pathname.split("/");
-    const currentPage = pathParts[3] || "sessions"; // default-ად სესიები
 
-    // 2. გადავიყვანოთ ახალი მაღაზიის შესაბამის გვერდზე
+    const pathParts = pathname.split("/");
+    const currentPage = pathParts[3] || "/sessions"; 
+
+  
     router.push(`/dashboard/${shop.id}/${currentPage}`);
 
     setIsOpen(false);
@@ -58,8 +58,8 @@ export default function UserNav({ user, shops }) {
           <span className="text-xs font-bold text-gray-900 leading-none mb-1">
             {selectedShop ? selectedShop.name : user.email.split("@")[0]}
           </span>
-          <span className="text-[9px] text-green-600 uppercase tracking-widest font-black bg-green-50 px-1.5 py-0.5 rounded">
-            Active Shop
+          <span className={ selectedShop ? "text-[9px] text-green-600 uppercase tracking-widest font-black bg-green-50 px-1.5 py-0.5 rounded" : "text-[9px] text-gray-400 uppercase tracking-widest font-black bg-gray-50 px-1.5 py-0.5 rounded"}>
+           {selectedShop ? "Active Shop" : "No Active Shop"}
           </span>
         </div>
         <div
@@ -82,7 +82,7 @@ export default function UserNav({ user, shops }) {
                 {shops.map((shop) => (
                   <button
                     key={shop.id}
-                    onClick={() => handleShopSwitch(shop)} // შეცვლილი ლოგიკა
+                    onClick={() => handleShopSwitch(shop)} 
                     className={`w-full flex items-center cursor-pointer justify-between px-3 py-2 text-sm rounded-lg transition-all ${
                       selectedShop?.id === shop.id
                         ? "bg-gray-900 text-white shadow-md"
