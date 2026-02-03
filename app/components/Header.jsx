@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabaseServer";
 import LogoutButton from "./LogoutButton";
 import UserNav from "./UserNav"; // ამას ქვემოთ მოგცემ
 import { getMyShops } from "@/lib/actions/shopActions";
+import { Logo } from "./Logo";
 
 export default async function Header() {
   const supabase = await createClient();
@@ -19,12 +20,7 @@ export default async function Header() {
       <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
         {/* Logo */}
         <Link href="/" className="group flex items-center gap-2">
-          <div className="h-8 w-8 rounded-lg bg-black flex items-center justify-center transition-transform group-hover:scale-105">
-            <span className="text-white font-bold text-lg">S</span>
-          </div>
-          <span className="text-xl font-bold tracking-tight text-gray-900">
-            SalesAgent
-          </span>
+         <Logo />
         </Link>
 
         {/* Navigation */}

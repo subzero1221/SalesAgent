@@ -21,7 +21,7 @@ export default async function DashboardPage() {
   if (shops && shops.length > 0) {
     // თუ აქვს მაღაზიები, გადამისამართე პირველ მაღაზიაზე სესიების გვერდზე
     const firstShopId = shops[0].id;
-    redirect(`/dashboard/user/${user.id}/shop/${firstShopId}/sessions`);
+    redirect(`/dashboard/user/${user.id}`);
   }
 
   // თუ არ აქვს, აჩვენე მაღაზიის შექმნის გვერდი

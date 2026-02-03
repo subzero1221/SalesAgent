@@ -1,110 +1,74 @@
 import Link from "next/link";
-import { Mail, Phone, Facebook, MessageCircle } from 'lucide-react'; // დარწმუნდი რომ lucide-react დაინსტალირებული გაქვს
+import Footer from "./Footer";
+import { CheckCircle2, ShieldCheck, Zap } from "lucide-react";
+import PriceCardForLandingPage from "./PriceCardForLandingPage";
 
 export default function Hero() {
   return (
     <div className="flex flex-col min-h-screen bg-[#fafafa]">
-      {/* Hero Section */}
+      {/* 1. Hero Section */}
       <section className="flex-1 max-w-4xl mx-auto py-32 text-center px-6">
         <h1 className="text-5xl font-black tracking-tighter uppercase text-black leading-tight">
           SalesAgent — აგროვებს შეკვეთებს, <br />
           <span className="text-gray-400">როცა შენ არ ხარ ონლაინ</span>
         </h1>
-        <p className="mt-8 text-xl text-gray-500 font-medium leading-relaxed max-w-2xl mx-auto">
-          Messenger და Instagram კლიენტები არ იკარგება.
-          <br />
-          აგენტი აგროვებს პროდუქტს, მისამართს და ტელეფონს, შენ იღებ მზად მოთხოვნას.
+        <p className="mt-8 text-xl text-gray-500 font-medium leading-relaxed max-w-2xl mx-auto font-sans">
+          Messenger და Instagram კლიენტები არ იკარგება. აგენტი აგროვებს
+          პროდუქტს, მისამართს და ტელეფონს, შენ იღებ მზად მოთხოვნას.
         </p>
 
         <div className="mt-12">
           <Link
             href="/login"
-            className="px-10 py-5 bg-black text-white rounded-[2rem] font-black uppercase text-xs tracking-widest hover:shadow-2xl hover:shadow-black/20 transition-all duration-500"
+            className="px-10 py-5 bg-black text-white rounded-[2rem] font-black uppercase text-[10px] tracking-widest hover:shadow-2xl transition-all"
           >
-            დაიწყე ახლავე
+            შექმენი აგენტი უფასოდ
           </Link>
         </div>
       </section>
 
-      {/* --- FOOTER SECTION --- */}
-      <footer className="w-full py-12 border-t border-gray-100 bg-white">
-        <div className="max-w-6xl mx-auto px-8 flex flex-col md:flex-row justify-between items-center gap-8">
-          {/* Brand & Copyright */}
-          <div className="flex flex-col items-center md:items-start gap-2">
-            <span className="text-sm font-black uppercase tracking-tighter text-black">
-              SalesAgent.ge
-            </span>
-            <span className="text-[10px] font-bold text-gray-300 uppercase tracking-widest">
-              © 2026 ყველა უფლება დაცულია
-            </span>
-            {/* Contact Info - ბანკისთვის აუცილებელი დეტალები */}
-            <div className="flex flex-col gap-1 mt-2">
-              <a
-                href="tel:+995551559812"
-                className="flex items-center gap-2 text-[10px] font-bold text-gray-500 hover:text-black transition-colors"
-              >
-                <Phone size={12} /> 551 55 98 12
-              </a>
-              <a
-                href="mailto:bkelekhsaevi@gmail.com"
-                className="flex items-center gap-2 text-[10px] font-bold text-gray-500 hover:text-black transition-colors"
-              >
-                <Mail size={12} /> bkelekhsaevi@gmail.com
-              </a>
-            </div>
-          </div>
-
-          {/* Practical Links & Socials */}
-          <div className="flex flex-col items-center gap-6">
-            <div className="flex items-center gap-6">
-              <Link
-                href="/privacy"
-                className="text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-black transition-colors"
-              >
-                Privacy Policy
-              </Link>
-              <Link
-                href="/Terms-of-service"
-                className="text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-black transition-colors"
-              >
-                Terms of Service
-              </Link>
-              <Link
-                href="/refund-policy"
-                className="text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-black transition-colors"
-              >
-                Refund Policy
-              </Link>
-            </div>
-
-            {/* Social Icons */}
-            <div className="flex items-center gap-4">
-              <Link
-                href="https://wa.me/995551559812"
-                target="_blank"
-                className="text-gray-400 hover:text-green-500 transition-colors"
-              >
-                <MessageCircle size={18} />
-              </Link>
-              <Link
-                href="https://www.facebook.com/beso.qelexsaevi"
-                target="_blank"
-                className="text-gray-400 hover:text-blue-600 transition-colors"
-              >
-                <Facebook size={18} />
-              </Link>
-            </div>
-          </div>
-
-          {/* Status Indicator */}
-          <div className="flex items-center gap-2 px-4 py-2 bg-green-50 rounded-full border border-green-100">
-            <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
-            <span className="text-[9px] font-black uppercase tracking-widest text-green-700">
-              Platform Stable
-            </span>
+      {/* 2. Pricing Section - ბანკის დადასტურებისთვის */}
+      <section className="py-24 px-6">
+        <div className="max-w-5xl mx-auto">
+          <h2 className="text-center text-[10px] font-black uppercase tracking-[0.3em] text-gray-400 mb-12">
+            ტარიფები
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 italic">
+            <PriceCardForLandingPage
+              title="Free"
+              price="0₾"
+              features={["1 მაღაზია", "50 მესიჯი", "Telegram ნოტიფიკაცია"]}
+            />
+            <PriceCardForLandingPage
+              title="Starter"
+              price="79₾"
+              featured={true}
+              features={["2 მაღაზია", "1000 მესიჯი","100 პროდუქტი", "დახმარება 24/7"]}
+            />
+            <PriceCardForLandingPage
+              title="Pro"
+              price="179₾"
+              features={["3 მაღაზია", "3000 მესიჯი", "200 პროდუქტი", "დახმარება 24/7"]}
+            />
           </div>
         </div>
-      </footer>
+      </section>
+
+      {/* 3. Compliance Info - Meta-სთვის */}
+      <section className="py-20 max-w-4xl mx-auto px-6 text-center">
+        <div className="flex flex-col md:flex-row gap-8 justify-center items-center">
+          <div className="flex items-center gap-2 text-[10px] font-black uppercase">
+            <ShieldCheck size={16} /> Meta Verified Integration
+          </div>
+          <div className="flex items-center gap-2 text-[10px] font-black uppercase">
+            <Zap size={16} /> Real-time Processing
+          </div>
+        </div>
+      </section>
+
+      <Footer />
     </div>
   );
 }
+
+
