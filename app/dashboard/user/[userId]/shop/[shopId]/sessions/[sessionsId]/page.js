@@ -1,9 +1,12 @@
 import SingleSessionPage from "@/app/components/SingleSessionPage";
 
-export const metadata = {
-  title: "Sales Agent / session details",
-  description: "My Sales Bot - AI Sales Assistant for E-commerce Businesses",
-};
+export async function generateMetadata({ params }) {
+  const { sessionId } = await params;
+  return {
+    title: `Session ${sessionId} / Details`,
+    description: `Details for session with ID ${sessionId}`,
+  };
+}
 
 export default async function Page({ params }) {
   const { sessionId } = await params;

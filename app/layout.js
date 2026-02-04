@@ -1,6 +1,7 @@
 import Header from "./components/Header";
 import "./global.css";
 import Providers from "./Providers";
+import {Toaster} from "sonner"
 
 
 
@@ -18,6 +19,7 @@ export default function RootLayout({ children }) {
         <Providers>
           <Header />
           {children}
+          <Toaster position="top-center" richColors />
         </Providers>
       </body>
     </html>

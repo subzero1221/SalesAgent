@@ -2,6 +2,8 @@
 import { uploadProduct } from "@/lib/services/productService";
 import { supabaseClient } from "@/lib/supabaseClient";
 import { useState } from "react";
+import { toast } from "sonner";
+
 
 export default function AddProductBox({ shopId }) {
   const [text, setText] = useState("");
@@ -77,8 +79,6 @@ const saveProduct = async () => {
     const errors = results.filter((res) => res.error);
 
     if (errors.length === 0) {
-      alert(`წარმატებით აიტვირთა ${visualsToUpload.length} ვარიანტი! 🚀`);
-      // ყველაფრის გასუფთავება
       setPreview({
         name: "",
         brand: "",
@@ -88,13 +88,15 @@ const saveProduct = async () => {
         stock: "",
       });
       setText("");
+      setPreview(null);
+      toast.success(`${visualsToUpload.length} პროდუქტი წარმატებით დაემატა!`);
     } else {
-      alert(`შეცდომაა ${errors.length} ვარიანტზე. შეამოწმე კონსოლი.`);
+      toast.error("მონაცემების შენახვისას მოხდა შეცდომა.");
       console.error("Upload Errors:", errors);
     }
   } catch (err) {
     console.error("Critical Save Error:", err);
-    alert("ვერ მოხერხდა პროდუქტების შენახვა.");
+    toast.error("ვერ მოხერხდა პროდუქტების შენახვა.");
   } finally {
     setLoading(false);
   }

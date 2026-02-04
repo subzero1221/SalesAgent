@@ -2,15 +2,21 @@
 import { toggleBotStatus } from "@/lib/actions/shopActions";
 import Link from "next/link";
 import { useState } from "react";
-import { MessageSquare, ExternalLink } from "lucide-react"; // თუ lucide გაქვს
+import { MessageSquare, ExternalLink } from "lucide-react"; 
+
+const PLAN_LIMITS = {
+  demo: 50,
+  starter: 1000,
+  pro: 3000, 
+};
 
 export default function ShopCard({ shop, userId }) {
   const [isBotEnabled, setIsBotEnabled] = useState(shop.bot_enabled);
 
-  const limits = { demo: 100, starter: 1000, pro: 5000 };
-  const maxLimit = limits[shop.shop_plan] || 100;
-  const used = shop.messages_sent_this_month || 0;
-  const percentage = Math.min((used / maxLimit) * 100, 100);
+ 
+  const maxLimit = PLAN_LIMITS[shop.plan_type] || PLAN_LIMITS.demo;
+ const used = shop.messages_sent_this_month || 0;
+ const percentage = Math.min((used / maxLimit) * 100, 100);
 
   const botUsername = "Lead_confirmed_bot";
   const telegramLink = `https://t.me/${botUsername}?start=${shop.id}`;

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link"; // Link დავამატე
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   deleteProduct,
@@ -14,20 +15,16 @@ import {
   Package,
   Trash2,
   Sparkles,
-  Tag,
-  AlertCircle,
   ChevronLeft,
   ChevronRight,
   ChevronDown,
   Check,
-  Layers,
+  ArrowLeft, // ArrowLeft დავამატე
 } from "lucide-react";
 
-export default function ProductsPage({ shopId }) {
+export default function ProductsPage({ shopId, userId }) {
   const [banner, setBanner] = useState(true);
   const [productToDelete, setProductToDelete] = useState(null);
-
-  console.log("Delete Product State:", productToDelete);
 
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
@@ -35,7 +32,7 @@ export default function ProductsPage({ shopId }) {
 
   const queryClient = useQueryClient();
 
-  const { data, isLoading, error } = useQuery({
+  const { data, isLoading } = useQuery({
     queryKey: ["products", shopId, page, pageSize],
     queryFn: () => getShopProducts(shopId, page, pageSize),
     keepPreviousData: true,
@@ -70,12 +67,25 @@ export default function ProductsPage({ shopId }) {
   return (
     <div className="p-6 lg:p-12 bg-[#fafafa] min-h-screen text-black selection:bg-black selection:text-white">
       <div className="max-w-7xl mx-auto space-y-10">
-        {/* --- HEADER & CUSTOM DROPDOWN --- */}
+        {/* --- HEADER & BACK BUTTON --- */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-          <div className="space-y-1">
-            <h1 className="text-5xl font-black tracking-tighter text-gray-950 uppercase">
-              ინვენტარი
-            </h1>
+          <div className="flex items-center gap-5">
+            {/* Back Button */}
+            <Link
+              href={`/dashboard/user/${userId}/shop/${shopId}`}
+              className="p-3 bg-white border border-gray-100 rounded-2xl hover:bg-gray-50 transition-all text-gray-400 hover:text-black group shadow-sm"
+            >
+              <ArrowLeft
+                size={24}
+                className="group-hover:-translate-x-1 transition-transform"
+              />
+            </Link>
+
+            <div className="space-y-1">
+              <h1 className="text-3xl font-black tracking-tighter text-gray-950 uppercase sans-serif ">
+                ინვენტარი
+              </h1>
+            </div>
           </div>
 
           <div className="flex items-center bg-white rounded-[2.2rem] border border-gray-100 shadow-2xl shadow-gray-200/60 p-1.5 transition-all">
@@ -188,7 +198,6 @@ export default function ProductsPage({ shopId }) {
                     </div>
                   </td>
 
-                  {/* --- STOCK SIZES RENDER --- */}
                   <td className="px-10 py-8">
                     <div className="flex flex-wrap gap-1.5 max-w-[150px]">
                       {product.stock && typeof product.stock === "object" ? (
@@ -213,11 +222,6 @@ export default function ProductsPage({ shopId }) {
                       <Sparkles className="w-4 h-4 text-amber-400 mt-1 flex-shrink-0" />
                       <p className="text-sm text-gray-600 leading-relaxed font-medium">
                         {product.visual_appearance ||
-                          product.description ||
-                          "აღწერა არ არის..."}
-                      </p>
-                      <p className="text-sm text-gray-600 leading-relaxed font-medium">
-                        {
                           product.description ||
                           "აღწერა არ არის..."}
                       </p>
@@ -258,7 +262,6 @@ export default function ProductsPage({ shopId }) {
             </tbody>
           </table>
 
-          {/* --- PAGINATION FOOTER --- */}
           {totalPages > 1 && (
             <div className="px-10 py-8 border-t border-gray-50 flex items-center justify-between bg-gray-50/30">
               <div className="flex items-center gap-2">
@@ -292,19 +295,16 @@ export default function ProductsPage({ shopId }) {
         </div>
       </div>
 
-      {/* Delete Modal */}
       <ConfirmModal
         isOpen={!!productToDelete}
         onClose={() => setProductToDelete(null)}
         title="პროდუქტის წაშლა"
       >
         <div className="p-6 text-center">
-          {/* Icon with subtle red background */}
           <div className="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-8">
             <Trash2 className="w-9 h-9 text-red-500 stroke-[1.5]" />
           </div>
 
-          {/* Text Content - Clear & Readable */}
           <div className="space-y-4">
             <h3 className="text-[11px] font-black uppercase tracking-[0.2em] text-gray-400">
               პროდუქტის წაშლა
@@ -315,7 +315,6 @@ export default function ProductsPage({ shopId }) {
                 ნამდვილად გსურთ წაშლა?
               </p>
 
-              {/* Product Highlight */}
               <p className="text-sm font-medium text-gray-500">
                 თქვენ შლით:{" "}
                 <span className="font-black text-black italic">
@@ -330,7 +329,6 @@ export default function ProductsPage({ shopId }) {
             </div>
           </div>
 
-          {/* Balanced Buttons */}
           <div className="flex gap-4 mt-10">
             <button
               onClick={() => setProductToDelete(null)}

@@ -4,11 +4,11 @@ import Link from "next/link";
 import {
   ChevronLeft,
   ChevronRight,
-  MessageCircle,
   User,
   MapPin,
   Sparkles,
   Phone,
+  ArrowLeft,
 } from "lucide-react";
 
 export default function RequestRenderer({
@@ -17,21 +17,36 @@ export default function RequestRenderer({
   totalPages,
   currentPage,
   shopId,
+  userId,
 }) {
   return (
     <div className="max-w-6xl mx-auto p-6 space-y-6">
+      {/* Header with Back Button */}
       <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-black tracking-tight text-gray-950">
-            შემოსული მოთხოვნები
-          </h1>
-          <p className="text-sm text-gray-700 font-bold mt-1">
-            სულ ნაპოვნია {count} ჩანაწერი
-          </p>
+        <div className="flex items-center gap-5">
+          {/* Back to Shop Overview */}
+          <Link
+            href={`/dashboard/user/${userId}/shop/${shopId}`}
+            className="p-3 bg-white border border-gray-200 rounded-2xl hover:bg-gray-50 transition-all text-gray-400 hover:text-black group shadow-sm"
+          >
+            <ArrowLeft
+              size={24}
+              className="group-hover:-translate-x-1 transition-transform"
+            />
+          </Link>
+
+          <div>
+            <h1 className="text-3xl font-black tracking-tight text-gray-950 uppercase sans-serif">
+              შემოსული მოთხოვნები
+            </h1>
+            <p className="text-sm text-gray-700 font-bold mt-1">
+              სულ ნაპოვნია {count} ჩანაწერი
+            </p>
+          </div>
         </div>
       </div>
 
-      <div className="bg-white border border-gray-200 rounded-2xl shadow-md overflow-hidden">
+      <div className="bg-white border border-gray-200 rounded-2xl shadow-md overflow-hidden font-sans">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-separate border-spacing-0">
             <thead>
@@ -56,7 +71,6 @@ export default function RequestRenderer({
             <tbody className="divide-y divide-gray-100">
               {requests.map((req) => (
                 <tr key={req.id} className="hover:bg-gray-50 transition-colors">
-                  {/* მომხმარებელი - შავი ტექსტით */}
                   <td className="px-6 py-5">
                     <div className="flex flex-col gap-1.5">
                       <div className="flex items-center gap-2">
@@ -74,10 +88,9 @@ export default function RequestRenderer({
                     </div>
                   </td>
 
-                  {/* პროდუქტი - მკვეთრი კონტრასტით */}
                   <td className="px-6 py-5">
                     <div className="flex flex-col gap-2">
-                      <span className="text-sm font-black text-black">
+                      <span className="text-sm font-black text-black uppercase tracking-tight">
                         {req.request?.product || "დასახელება არ არის"}
                       </span>
                       <div className="flex flex-wrap gap-1.5">
@@ -90,7 +103,6 @@ export default function RequestRenderer({
                     </div>
                   </td>
 
-                  {/* აღწერა - მუქი ნაცრისფერი უკეთესი წაკითხვისთვის */}
                   <td className="px-6 py-5">
                     <div className="flex gap-2 items-start max-w-[220px]">
                       <Sparkles className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
@@ -101,7 +113,6 @@ export default function RequestRenderer({
                     </div>
                   </td>
 
-                  {/* მისამართი - მკვეთრად */}
                   <td className="px-6 py-5">
                     <div className="flex gap-2 items-start">
                       <MapPin className="w-4 h-4 text-red-600 mt-0.5 flex-shrink-0" />
@@ -111,7 +122,6 @@ export default function RequestRenderer({
                     </div>
                   </td>
 
-                  {/* თარიღი */}
                   <td className="px-6 py-5">
                     <span className="text-xs font-black text-gray-900 tabular-nums">
                       {new Date(req.created_at).toLocaleDateString("ka-GE")}
@@ -123,22 +133,22 @@ export default function RequestRenderer({
           </table>
         </div>
 
-        {/* Pagination - შავი ღილაკებით */}
+        {/* Pagination */}
         <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between bg-gray-50">
-          <p className="text-xs text-gray-900 font-bold">
+          <p className="text-xs text-gray-900 font-bold uppercase tracking-tight">
             გვერდი{" "}
             <span className="text-blue-600 font-black">{currentPage}</span> /{" "}
             {totalPages}
           </p>
           <div className="flex gap-2">
             <Link
-              href={`/dashboard/${shopId}/requests?page=${currentPage - 1}`}
+              href={`/dashboard/user/${userId}/shop/${shopId}/requests?page=${currentPage - 1}`}
               className={`p-2 rounded-lg border-2 border-gray-200 bg-white transition-all ${currentPage <= 1 ? "pointer-events-none opacity-20" : "hover:border-black hover:bg-black hover:text-white"}`}
             >
               <ChevronLeft className="w-5 h-5" />
             </Link>
             <Link
-              href={`/dashboard/${shopId}/requests?page=${currentPage + 1}`}
+              href={`/dashboard/user/${userId}/shop/${shopId}/requests?page=${currentPage + 1}`}
               className={`p-2 rounded-lg border-2 border-gray-200 bg-white transition-all ${currentPage >= totalPages ? "pointer-events-none opacity-20" : "hover:border-black hover:bg-black hover:text-white"}`}
             >
               <ChevronRight className="w-5 h-5" />
