@@ -15,11 +15,13 @@
     "@supabase/supabase-js": "^2.91.0",
     "@tanstack/react-query": "^5.90.20",
     "@vercel/functions": "^3.4.0",
+    "icons": "^1.0.0",
     "lucide-react": "^0.562.0",
     "next": "16.1.1",
     "openai": "^6.16.0",
-    "react": "19.2.3",
+    "react": "^19.2.3",
     "react-dom": "19.2.3",
+    "react-icons": "^5.5.0",
     "sonner": "^2.0.7"
   },
   "devDependencies": {

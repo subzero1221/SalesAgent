@@ -1,11 +1,13 @@
 "use client";
 import { uploadProduct } from "@/lib/services/productService";
 import { supabaseClient } from "@/lib/supabaseClient";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 
 
 export default function AddProductBox({ shopId }) {
+  const router = useRouter();
   const [text, setText] = useState("");
   const [loading, setLoading] = useState(false);
   const [preview, setPreview] = useState(null);
@@ -90,6 +92,7 @@ const saveProduct = async () => {
       setText("");
       setPreview(null);
       toast.success(`${visualsToUpload.length} პროდუქტი წარმატებით დაემატა!`);
+      router.refresh();
     } else {
       toast.error("მონაცემების შენახვისას მოხდა შეცდომა.");
       console.error("Upload Errors:", errors);

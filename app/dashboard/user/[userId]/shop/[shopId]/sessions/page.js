@@ -5,7 +5,7 @@ export async function generateMetadata({ params }) {
   const { shopId } = await params;
   const shop = await getShopById(shopId);
   return {
-    title: `Shop ${shop.name} / Sessions`,
+    title: `მაღაზია ${shop.name} / სესიები`,
     description: `Shop sessions for shop with ID ${shopId}`,
   };
 }

@@ -123,7 +123,10 @@ export default function RequestRenderer({
                   </td>
 
                   <td className="px-6 py-5">
-                    <span className="text-xs font-black text-gray-900 tabular-nums">
+                    <span
+                      suppressHydrationWarning
+                      className="text-xs font-black text-gray-900 tabular-nums"
+                    >
                       {new Date(req.created_at).toLocaleDateString("ka-GE")}
                     </span>
                   </td>
