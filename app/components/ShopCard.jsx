@@ -4,19 +4,15 @@ import Link from "next/link";
 import { useState } from "react";
 import { MessageSquare, ExternalLink } from "lucide-react"; 
 
-const PLAN_LIMITS = {
-  demo: 50,
-  starter: 1000,
-  pro: 3000, 
-};
+
 
 export default function ShopCard({ shop, userId }) {
   const [isBotEnabled, setIsBotEnabled] = useState(shop.bot_enabled);
 
  
-  const maxLimit = PLAN_LIMITS[shop.plan_type] || PLAN_LIMITS.demo;
- const used = shop.messages_sent_this_month || 0;
- const percentage = Math.min((used / maxLimit) * 100, 100);
+   const used = shop.messages_sent_this_month || 0;
+   const limit = shop.message_limit || 50;
+   const percentage = Math.min((used / limit) * 100, 100);
 
   const botUsername = "Lead_confirmed_bot";
   const telegramLink = `https://t.me/${botUsername}?start=${shop.id}`;
@@ -93,7 +89,7 @@ export default function ShopCard({ shop, userId }) {
                 percentage > 90 ? "text-red-600 font-black" : "text-black"
               }
             >
-              {used} / {maxLimit}
+              {used}/{limit}
             </span>
           </div>
           <div className="w-full bg-gray-200 h-1.5 rounded-full overflow-hidden">

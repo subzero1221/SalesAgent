@@ -26,7 +26,7 @@ export default async function Header() {
         {/* Navigation */}
         <nav className="flex items-center gap-6">
           <Link
-            href="/billing"
+            href={`/dashboard/user/${user?.id}/shop/${shops[0]?.id}/billing`}
             className="hidden sm:block text-sm font-medium text-gray-500 hover:text-gray-900 transition-colors"
           >
             ფასები

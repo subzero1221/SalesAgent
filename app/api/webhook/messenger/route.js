@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getShopByFacebookId } from "@/lib/actions/shopActions";
+import { getShopByPlatformId } from "@/lib/actions/shopActions";
 import { aiResponse } from "@/lib/actions/geminiService";
 import { waitUntil } from "@vercel/functions"; 
 import {
@@ -75,12 +75,12 @@ export async function POST(request) {
    const messaging = entry?.messaging?.[0];
    const senderId = messaging?.sender?.id;
    const userText = messaging?.message?.text;
-   const facebookPageId = entry?.id;
+   const platformId = entry?.id;
 
    if (!userText || !senderId) return;
 
-   // 1. მაღაზიის პოვნა
-   const shop = await getShopByFacebookId(facebookPageId);
+   
+   const shop = await getShopByPlatformId(platformId);
    if (!shop) return;
 
    const { id: shopId, facebook_access_token: token } = shop;
