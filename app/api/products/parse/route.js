@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { parseProductFromText } from "@/lib/actions/geminiService";
+import { parseProductFromText } from "@/lib/actions/geminiServiceForMessages";
 
 export async function POST(req) {
   try {

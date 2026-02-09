@@ -1,18 +1,20 @@
 "use client";
-import { toggleBotStatus } from "@/lib/actions/shopActions";
+// დავამატე togglePublicReply იმპორტში
+import { toggleBotStatus, togglePublicReply } from "@/lib/actions/shopActions";
 import Link from "next/link";
 import { useState } from "react";
-import { MessageSquare, ExternalLink } from "lucide-react"; 
-
-
+import { MessageSquare, ExternalLink, Globe, Lock } from "lucide-react";
 
 export default function ShopCard({ shop, userId }) {
   const [isBotEnabled, setIsBotEnabled] = useState(shop.bot_enabled);
+  // ახალი სტეიტი საჯარო პასუხისთვის
+  const [isPublicEnabled, setIsPublicEnabled] = useState(
+    shop.answer_publicly || false,
+  );
 
- 
-   const used = shop.messages_sent_this_month || 0;
-   const limit = shop.message_limit || 50;
-   const percentage = Math.min((used / limit) * 100, 100);
+  const used = shop.messages_sent_this_month || 0;
+  const limit = shop.message_limit || 50;
+  const percentage = Math.min((used / limit) * 100, 100);
 
   const botUsername = "Lead_confirmed_bot";
   const telegramLink = `https://t.me/${botUsername}?start=${shop.id}`;
@@ -36,6 +38,18 @@ export default function ShopCard({ shop, userId }) {
     }
   };
 
+  // ფუნქცია საჯარო პასუხის გადასართველად
+  const togglePublic = async () => {
+    const newState = !isPublicEnabled;
+    setIsPublicEnabled(newState);
+    try {
+      await togglePublicReply(shop.id, newState);
+    } catch (error) {
+      setIsPublicEnabled(!newState);
+      alert("ვერ მოხერხდა საჯარო პასუხის პარამეტრის შეცვლა!");
+    }
+  };
+
   return (
     <div className="bg-white rounded-[32px] border border-gray-100 p-8 shadow-sm hover:shadow-xl transition-all group max-w-md w-full flex flex-col justify-between h-full">
       <div>
@@ -53,23 +67,33 @@ export default function ShopCard({ shop, userId }) {
                 onClick={toggleBot}
                 className={`px-3 py-1 rounded-full cursor-pointer text-[9px] font-black uppercase tracking-wider transition-all ${
                   isBotEnabled
-                    ? "bg-green-50 text-green-600 hover:bg-green-100"
-                    : "bg-red-50 text-red-600 hover:bg-red-100"
+                    ? "bg-green-50 text-green-600 hover:bg-green-100 border border-green-100"
+                    : "bg-red-50 text-red-600 hover:bg-red-100 border border-red-100"
                 }`}
               >
                 {isBotEnabled ? "● ACTIVE" : "○ PAUSED"}
               </button>
             </div>
 
-            {shop.telegram_chat_id ? (
-              <span className="text-[9px] font-black text-blue-500 uppercase tracking-widest">
-                ✓ Telegram Connected
-              </span>
-            ) : (
-              <span className="text-[9px] font-black text-gray-300 uppercase tracking-widest text-right">
-                Telegram Missing
-              </span>
-            )}
+            {/* ახალი ღილაკი საჯარო პასუხისთვის */}
+            <button
+              onClick={togglePublic}
+              className={`flex items-center gap-1.5 px-3 py-1 rounded-full cursor-pointer text-[9px] font-black uppercase tracking-wider transition-all border ${
+                isPublicEnabled
+                  ? "bg-blue-50 text-blue-600 border-blue-100 hover:bg-blue-100"
+                  : "bg-gray-50 text-gray-500 border-gray-100 hover:bg-gray-100"
+              }`}
+            >
+              {isPublicEnabled ? (
+                <>
+                  <Globe size={10} /> PUBLIC COMMENT ANSWER ON
+                </>
+              ) : (
+                <>
+                  <Lock size={10} /> PRIVATE COMMENT ONLY
+                </>
+              )}
+            </button>
           </div>
         </div>
 
@@ -102,7 +126,6 @@ export default function ShopCard({ shop, userId }) {
       </div>
 
       <div className="space-y-3">
-        {/* Telegram Button - მხოლოდ მაშინ როცა არ არის დაკავშირებული */}
         {!shop.telegram_chat_id && (
           <a
             href={telegramLink}
@@ -114,7 +137,6 @@ export default function ShopCard({ shop, userId }) {
           </a>
         )}
 
-        {/* Main Action Button */}
         <Link
           href={baseUrl}
           className="w-full flex items-center justify-center py-4 rounded-2xl bg-black text-white text-[10px] font-black uppercase tracking-[2px] hover:bg-gray-800 transition-all shadow-md"
@@ -122,7 +144,6 @@ export default function ShopCard({ shop, userId }) {
           მართვა <ExternalLink size={14} className="ml-2" />
         </Link>
 
-        {/* Secondary Links */}
         <div className="grid grid-cols-2 gap-3">
           <Link
             href={`${baseUrl}/sessions`}
@@ -132,7 +153,7 @@ export default function ShopCard({ shop, userId }) {
           </Link>
           <Link
             href={`${baseUrl}/billing`}
-            className="flex items-center justify-center py-3 rounded-xl bg-blue-50 text-blue-600 text-[9px] font-black uppercase tracking-widest hover:bg-blue-100 transition-all border border-blue-100 font-black"
+            className="flex items-center justify-center py-3 rounded-xl bg-blue-50 text-blue-600 text-[9px] font-black uppercase tracking-widest hover:bg-blue-100 transition-all border border-blue-100"
           >
             UPGRADE
           </Link>

@@ -11,12 +11,14 @@ export async function GET(request) {
   if (!code) {
     return NextResponse.json({ error: "No code provided" }, { status: 400 });
   }
+   
+ console.log("REDIRECT URI IS:", process.env.FACEBOOK_REDIRECT_URI);
 
   try {
     // 1. EXCHANGE CODE FOR SHORT-LIVED USER TOKEN (Valid for ~2 hours)
     // This is the first "handshake" to prove the login code is valid.
-    const shortTokenUrl = `https://graph.facebook.com/v21.0/oauth/access_token?client_id=${process.env.FACEBOOK_BUSSINESAPP_ID}&client_secret=${process.env.FACEBOOK_APP_SECRET}&redirect_uri=${process.env.FACEBOOK_REDIRECT_URI}&code=${code}`;
-
+    const shortTokenUrl = `https://graph.facebook.com/v21.0/oauth/access_token?client_id=${process.env.FACEBOOK_BUSINESSAPP_ID}&client_secret=${process.env.FACEBOOK_APP_SECRET}&redirect_uri=${process.env.FACEBOOK_REDIRECT_URI}&code=${code}`;
+  
     const shortTokenRes = await fetch(shortTokenUrl);
     const shortTokenData = await shortTokenRes.json();
 
@@ -25,7 +27,7 @@ export async function GET(request) {
 
     // 2. UPGRADE TO LONG-LIVED USER TOKEN (Valid for 60 days)
     // You MUST do this so your bot doesn't "die" when the owner logs out.
-    const longTokenUrl = `https://graph.facebook.com/v21.0/oauth/access_token?grant_type=fb_exchange_token&client_id=${process.env.FACEBOOK_BUSSINESAPP_ID}&client_secret=${process.env.FACEBOOK_APP_SECRET}&fb_exchange_token=${shortUserToken}`;
+    const longTokenUrl = `https://graph.facebook.com/v21.0/oauth/access_token?grant_type=fb_exchange_token&client_id=${process.env.FACEBOOK_BUSINESSAPP_ID}&client_secret=${process.env.FACEBOOK_APP_SECRET}&fb_exchange_token=${shortUserToken}`;
 
     const longTokenRes = await fetch(longTokenUrl);
     const longTokenData = await longTokenRes.json();

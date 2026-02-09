@@ -4,11 +4,12 @@ export default function FacebookLoginButton({userId}) {
     
   const handleLogin = () => {
    
-    const appId = process.env.NEXT_PUBLIC_FACEBOOK_BUSSINESAPP_ID;
+    const appId = process.env.NEXT_PUBLIC_FACEBOOK_BUSINESSAPP_ID;
     const configId = process.env.NEXT_PUBLIC_CONFIGURATION_ID;
     const redirectUri = encodeURIComponent(
       "https://posthippocampal-lucently-sang.ngrok-free.dev/api/auth/facebook",
     );
+    
 
     const state=userId
     const authUrl =
@@ -20,6 +21,7 @@ export default function FacebookLoginButton({userId}) {
       `&response_type=code` +
       `&override_default_response_type=true` +
       `&scope=pages_messaging,instagram_manage_messages,pages_show_list,business_management`;
+;
 
     window.location.href = authUrl;
   };
