@@ -14,15 +14,18 @@ import {
   Globe,
   Lock,
   Save,
+  RefreshCcw,
 } from "lucide-react";
 import { useState } from "react";
 import {
   toggleBotStatus,
   togglePublicReply,
   updateCustomPublicText,
+  toggleAutoImport,
 } from "@/lib/actions/shopActions";
 import { toast } from "sonner";
 import InfoBanner from "./InfoBanner";
+
 
 export default function SingleShop({
   shop,
@@ -36,7 +39,11 @@ export default function SingleShop({
   const [isPublicEnabled, setIsPublicEnabled] = useState(
     shop.answer_publicly || false,
   );
+  const [isAutoImportEnabled, setIsAutoImportEnabled] = useState(
+    shop.auto_import_products || false,
+  );
   const [banner, setBanner] = useState(true);
+  const [bannerTwo, setBannerTwo] = useState(true);
   const [customText, setCustomText] = useState(shop.custom_public_text || "");
   const [isSaving, setIsSaving] = useState(false);
 
@@ -91,6 +98,22 @@ export default function SingleShop({
       toast.error("ვერ მოხერხდა შენახვა");
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handleToggleAutoImport = async () => {
+    const newState = !isAutoImportEnabled;
+    setIsAutoImportEnabled(newState);
+    try {
+      await toggleAutoImport(shop.id, newState);
+      toast.success(
+        newState
+          ? "ავტომატური იმპორტი ჩაირთო! პოსტები აისახება ბაზაში."
+          : "ავტომატური იმპორტი გაითიშა.",
+      );
+    } catch (error) {
+      setIsAutoImportEnabled(!newState);
+      toast.error("შეცდომა პარამეტრის შეცვლისას");
     }
   };
 
@@ -218,6 +241,30 @@ export default function SingleShop({
               <AddProductBox shopId={shop.id} userId={userId} />
             </div>
 
+            <div className="bg-white rounded-[32px] border border-gray-100 shadow-sm p-6 transition-all hover:shadow-md">
+              <div className="flex gap-4 items-start mb-4">
+                <button
+                  onClick={handleToggleAutoImport}
+                  className={`cursor-pointer w-10 h-5 rounded-full relative transition-all ${isAutoImportEnabled ? "bg-orange-500" : "bg-gray-200"}`}
+                >
+                  <div
+                    className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all ${isAutoImportEnabled ? "left-6" : "left-1"}`}
+                  />
+                </button>
+                <h3 className="text-sm font-black uppercase italic mb-1">
+                  პროდუქტის ავტომატური ატვირთვა (Auto-Import)
+                </h3>
+              </div>
+
+              {bannerTwo && (
+                <InfoBanner
+                  setBanner={setBannerTwo}
+                  text="ამ ოფციის ჩართვით, ყველა ახალი პოსტი თქვენს გვერდზე ავტომატურად აისახება ბაზაში და მზად იქნება აგენტისთვის პასუხის გასაცემად. დარმუნდით რომ პოსტში არის მითითებული ყველა საჭირო ინფორმაცია ან დაამატეთ ხელით პროდუქტების გვერდიდან (სახელი, ფასი, ზომა) რათა აგენტმა შეძლოს სწორი პასუხის გაცემა."
+                  type="warning"
+                />
+              )}
+            </div>
+
             {/* --- NEW: Public Reply Settings --- */}
             <div className="bg-white rounded-[32px] border border-gray-100 shadow-sm p-8 transition-all hover:shadow-md">
               <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
@@ -249,12 +296,12 @@ export default function SingleShop({
               {/* Input for Static Text - Only visible when AI public answer is OFF */}
               {!isPublicEnabled && (
                 <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
-                 {banner && (
-                           <InfoBanner
-                             setBanner={setBanner}
-                             text="როდესაც საჯარო პასუხი გამორთულია, აგენტი ავტომატურად უპასუხებს მომხმარებლის კომენტარს აქ განსაზღვრულ ტექსტს, ხოლო დეტალურ პასუხს გაუგზავნის პირად შეტყობინებაში."
-                           />
-                         )}
+                  {banner && (
+                    <InfoBanner
+                      setBanner={setBanner}
+                      text="როდესაც საჯარო პასუხი გამორთულია, აგენტი ავტომატურად უპასუხებს მომხმარებლის კომენტარს აქ განსაზღვრულ ტექსტს, ხოლო დეტალურ პასუხს გაუგზავნის პირად შეტყობინებაში."
+                    />
+                  )}
 
                   <div className="relative flex items-center">
                     <input

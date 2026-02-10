@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { waitUntil } from "@vercel/functions"; 
 import { handleChatLogic } from "@/lib/meta-handlers/handleMessageEvent";
-import { handleFeedLogic } from "@/lib/meta-handlers/handdleFeedEvents";
+import { handleFeedLogic } from "@/lib/meta-handlers/handleFeedEvents";
+import { handlePostLogic } from "@/lib/meta-handlers/handlePostEvent";
 
 export async function GET(request) {
   const { searchParams } = new URL(request.url);
@@ -27,6 +28,8 @@ export async function POST(request) {
   try {
     const body = await request.json();
     const entry = body.entry?.[0];
+    const change = entry?.changes?.[0];
+    const value = change?.value; 
 
     console.log("Received webhook event:", JSON.stringify(body));
 
@@ -35,21 +38,44 @@ export async function POST(request) {
 
     // 🚀 ვარკვევთ რა ტიპის ივენთია
     if (entry?.messaging) {
-      // ეს არის პირადი მესიჯი (Messenger)
       waitUntil(
         handleChatLogic(body)
           .then(() => console.log("✅ Message processed"))
           .catch((err) => console.error("❌ Messenger Error:", err)),
       );
-    } else if (entry?.changes?.[0]?.field === "feed") {
-      console.log("Processing feed event...");
-      // ეს არის პოსტის კომენტარი (Feed)
-      // აქ დავაიმპორტებთ ახალ ფუნქციას, რომელსაც ქვემოთ შევქმნით
-      waitUntil(
-        handleFeedLogic(body)
-          .then(() => console.log("✅ Feed event processed"))
-          .catch((err) => console.error("❌ Feed Error:", err)),
-      );
+    }
+
+    // 2. Feed (აქ შემოდის პოსტიც და კომენტარიც!)
+    else if (change?.field === "feed") {
+      console.log(`Processing feed event: ${value?.item}`);
+
+      // ა) თუ ეს არის კომენტარი
+      if (value?.item === "comment" && value?.verb === "add") {
+        console.log("💬 Handling Comment Logic...");
+        waitUntil(
+          handleFeedLogic(body)
+            .then(() => console.log("✅ Feed/Comment processed"))
+            .catch((err) => console.error("❌ Feed Error:", err)),
+        );
+      }
+
+      // ბ) თუ ეს არის ახალი პოსტი (ფოტო, სტატუსი, ვიდეო)
+      else if (
+        ["photo", "status", "post", "video"].includes(value?.item) &&
+        value?.verb === "add"
+      ) {
+        console.log("📸 Handling New Post Logic...");
+        waitUntil(
+          handlePostLogic(body)
+            .then(() => console.log("✅ Post Logic processed"))
+            .catch((err) => console.error("❌ Post Logic Error:", err)),
+        );
+      }
+
+      // გ) სხვა რამე (მაგ: ლაიქი)
+      else {
+        console.log("⚠️ Ignored feed item:", value?.item);
+      }
     }
 
     return response;

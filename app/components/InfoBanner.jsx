@@ -7,8 +7,8 @@ export default function InfoBanner({ text, type = "info", setBanner }) {
   };
 
   const icons = {
-    info: <Info className="w-5 h-5 text-blue-500" />,
-    warning: <Info className="w-5 h-5 text-amber-500" />, // შეგიძლია AlertCircle გამოიყენო აქ
+    info: <Info className="w-10 h-10 text-blue-500" />,
+    warning: <Info className="w-10 h-10 text-amber-500" />, // შეგიძლია AlertCircle გამოიყენო აქ
   };
 
   return (
