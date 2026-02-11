@@ -36,7 +36,7 @@ export async function GET(request) {
     // 3. GET PERMANENT PAGE ACCESS TOKENS
     // This is the "Gold". When you use a 60-day user token to ask for Page tokens,
     // Meta gives you Page tokens that NEVER EXPIRE (unless the user removes your app).
-const pagesUrl = `https://graph.facebook.com/v21.0/me/accounts?fields=name,access_token,id,instagram_business_account&access_token=${longUserToken}`;
+const pagesUrl = `https://graph.facebook.com/v21.0/me/accounts?fields=name,access_token,id,instagram_business_account,picture{url}&access_token=${longUserToken}`;
     const pagesRes = await fetch(pagesUrl);
     const pagesData = await pagesRes.json();
     const pages = pagesData.data; // This is an array of all pages the user allowed.

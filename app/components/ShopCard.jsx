@@ -4,6 +4,7 @@ import { toggleBotStatus, togglePublicReply } from "@/lib/actions/shopActions";
 import Link from "next/link";
 import { useState } from "react";
 import { MessageSquare, ExternalLink, Globe, Lock } from "lucide-react";
+import Image from "next/image";
 
 export default function ShopCard({ shop, userId }) {
   const [isBotEnabled, setIsBotEnabled] = useState(shop.bot_enabled);
@@ -54,8 +55,19 @@ export default function ShopCard({ shop, userId }) {
     <div className="bg-white rounded-[32px] border border-gray-100 p-8 shadow-sm hover:shadow-xl transition-all group max-w-md w-full flex flex-col justify-between h-full">
       <div>
         <div className="flex justify-between items-start mb-6">
-          <div className="h-14 w-14 rounded-2xl bg-black text-white flex items-center justify-center text-2xl font-black">
-            {shop.name[0]}
+          <div className="h-14 w-14 rounded-2xl overflow-hidden border border-gray-100 flex items-center justify-center bg-black text-white text-2xl font-black shadow-inner">
+            {shop.logo_url ? (
+              <Image
+                src={shop.logo_url}
+                alt={shop.name}
+                className="w-full h-full object-cover transition-transform group-hover:scale-110 duration-500"
+                width={50}
+                height={50}
+              />
+            ) : (
+              // Placeholder თუ ლოგო არ არის
+              <span className="uppercase">{shop.name[0]}</span>
+            )}
           </div>
 
           <div className="flex flex-col items-end gap-2">
