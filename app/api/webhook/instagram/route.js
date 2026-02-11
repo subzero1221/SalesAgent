@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { waitUntil } from "@vercel/functions";
-import { handleInstagramCommentLogic } from "@/lib/meta-handlers/handlePostEventInstagram";
+import { handleInstagramCommentLogic } from "@/lib/meta-handlers/handlePostEventsInstagram";
 import { handleChatLogic } from "@/lib/meta-handlers/handleMessageEvent";
 
 
