@@ -13,7 +13,7 @@ export async function generateMetadata({ params }) {
 
 export default async function Page({ params }) {
   // ველოდებით params-ს (Next.js 15-ის მოთხოვნაა)
-  const { shopId } = await params;
+  const { userId, shopId } = await params;
 
-  return <ProductsPage shopId={shopId} />;
+  return <ProductsPage shopId={shopId} userId={userId} />;
 }

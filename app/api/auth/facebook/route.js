@@ -1,4 +1,5 @@
 import { saveShopData } from "@/lib/actions/shopActions";
+import { createDemoSubscription } from "@/lib/actions/subscriptionActions";
 import { NextResponse } from "next/server";
 
 export async function GET(request) {
@@ -45,8 +46,8 @@ const pagesUrl = `https://graph.facebook.com/v21.0/me/accounts?fields=name,acces
     // Loop through the pages and save the ID and the Secret Token.
     for (const page of pages) {
       // ა) ვინახავთ ბაზაში
-      await saveShopData(page, ownerId);
-
+    const shop = await saveShopData(page, ownerId);
+    await createDemoSubscription(shop.id)
       // ბ) ავტომატური საბსქრაიბი (რომ ბოტი გააქტიურდეს)
       try {
         const subscribeUrl = `https://graph.facebook.com/v21.0/${page.id}/subscribed_apps?access_token=${page.access_token}`;

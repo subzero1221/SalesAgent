@@ -10,9 +10,7 @@ import {
   updateProductDetails,
 } from "@/lib/services/productService";
 
-import InlineTextEdit from "./InlineTextEdit";
 import StockManagerModal from "./StockManagerModal";
-import PriceEdit from "./PriceEdit";
 import InfoBanner from "./InfoBanner";
 import ConfirmModal from "./ConfirmModal";
 import {
@@ -26,8 +24,9 @@ import {
   ArrowLeft,
   Settings2, // Setting Icon for stock
 } from "lucide-react";
-import { toast } from "sonner"; 
+import { toast } from "sonner";
 import PageSizeSelector from "./ProductsPageSizeSelector";
+import ProductTableRow from "./ProductTableRow";
 
 export default function ProductsPage({ shopId, userId }) {
   const [banner, setBanner] = useState(true);
@@ -38,7 +37,7 @@ export default function ProductsPage({ shopId, userId }) {
 
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
-  const [isPageSizeOpen, setIsPageSizeOpen] = useState(false);
+ 
 
   const queryClient = useQueryClient();
 
@@ -160,107 +159,14 @@ export default function ProductsPage({ shopId, userId }) {
 
             <tbody className="divide-y divide-gray-50">
               {products.map((product) => (
-                <tr
+                <ProductTableRow
                   key={product.id}
-                  className="hover:bg-gray-50/30 transition-all group"
-                >
-                  {/* 1. NAME EDIT */}
-                  <td className="px-10 py-8 align-top">
-                    <div className="flex flex-col gap-1.5">
-                      <InlineTextEdit
-                        value={product.name}
-                        label="სახელი"
-                        onSave={(val) =>
-                          updateDetailsMutation.mutate({
-                            id: product.id,
-                            updates: { name: val },
-                          })
-                        }
-                      />
-                      <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 rounded-full bg-blue-600" />
-                        <span className="text-[10px] font-black uppercase text-gray-400 tracking-widest">
-                          {product.brand || "BRAND"}
-                        </span>
-                      </div>
-                    </div>
-                  </td>
-
-                  {/* 2. STOCK EDIT (MODAL TRIGGER) */}
-                  <td className="px-10 py-8 align-top">
-                    <div className="flex flex-col items-start gap-2">
-                      <div className="flex flex-wrap gap-1.5 max-w-[150px]">
-                        {product.stock &&
-                        Object.keys(product.stock).length > 0 ? (
-                          Object.keys(product.stock).map((size) => (
-                            <span
-                              key={size}
-                              className="px-2 py-1 bg-gray-100 text-[10px] font-black rounded-md text-gray-600 border border-gray-200"
-                            >
-                              {size} ({product.stock[size]})
-                            </span>
-                          ))
-                        ) : (
-                          <span className="text-[10px] font-black text-gray-300 uppercase">
-                            Empty
-                          </span>
-                        )}
-                      </div>
-                      <button
-                        onClick={() => setStockModalData(product)}
-                        className="flex items-center gap-1 text-[10px] cursor-pointer font-bold text-blue-500 hover:bg-blue-50 px-2 py-1 rounded-lg transition-colors"
-                      >
-                        <Settings2 size={12} /> რედაქტირება
-                      </button>
-                    </div>
-                  </td>
-
-                  {/* 3. VISUAL APPEARANCE EDIT */}
-                  <td className="px-10 py-8 max-w-[300px] align-top">
-                    <div className="flex gap-3 items-start">
-                      <Sparkles className="w-4 h-4 text-amber-400 mt-1 flex-shrink-0" />
-                      <div className="flex-1">
-                        <InlineTextEdit
-                          value={product.visual_appearance}
-                          isTextarea={true}
-                          label="ვიზუალი"
-                          onSave={(val) =>
-                            updateDetailsMutation.mutate({
-                              id: product.id,
-                              updates: { visual_appearance: val },
-                            })
-                          }
-                        />
-                      </div>
-                    </div>
-                  </td>
-
-                  {/* 4. PRICE EDIT (EXISTING) */}
-                  <td className="px-10 py-8 align-top">
-                    <div className="flex items-center gap-3 font-black text-2xl">
-                      <PriceEdit
-                        id={product.id}
-                        initialPrice={product.price || 0}
-                        onUpdate={(val) => updatePriceMutation.mutate(val)}
-                      />
-                      {updatePriceMutation.isPending && (
-                        <span className="text-[10px] bg-black text-white px-2 py-1 rounded font-black animate-pulse">
-                          ...
-                        </span>
-                      )}
-                    </div>
-                  </td>
-
-                  {/* 5. DELETE */}
-                  <td className="px-10 py-8 text-right align-top">
-                    <button
-                      onClick={() => setProductToDelete(product)}
-                      className="p-4 text-gray-200 hover:text-red-500 hover:bg-red-50 rounded-[1.5rem] transition-all duration-300 cursor-pointer"
-                    >
-                      <Trash2 className="w-6 h-6" />
-                    </button>
-                  </td>
-                </tr>
+                  product={product}
+                  onUpdateDetails={updateDetailsMutation.mutate}
+                  onUpdatePrice={updatePriceMutation.mutate}
+                  onOpenStockModal={setStockModalData}
+                  onDeleteClick={setProductToDelete}
+                />
               ))}
             </tbody>
           </table>

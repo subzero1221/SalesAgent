@@ -1,9 +1,11 @@
 "use client";
 import { uploadProduct } from "@/lib/services/productService";
 import { supabaseClient } from "@/lib/supabaseClient";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
+import ProductImageMatcher from "./ProductImageMatcher";
 
 
 export default function AddProductBox({ shopId }) {
@@ -11,6 +13,7 @@ export default function AddProductBox({ shopId }) {
   const [text, setText] = useState("");
   const [loading, setLoading] = useState(false);
   const [preview, setPreview] = useState(null);
+  const [matchedImages, setMatchedImages] = useState({});
 
   // 1. AI ექსტრაქტორი
   const handleParse = async () => {
@@ -36,61 +39,108 @@ export default function AddProductBox({ shopId }) {
     }
   };
 
+
 const saveProduct = async () => {
   setLoading(true);
+
   try {
-    // 1. სთოქის დამუშავება (იგივე რჩება)
+    const {
+      data: { user },
+    } = await supabaseClient.auth.getUser();
+
+    if (!user) throw new Error("User not authenticated");
     let finalStock = {};
     if (typeof preview.stock === "object" && preview.stock !== null) {
       finalStock = preview.stock;
     } else if (typeof preview.stock === "string") {
       preview.stock.split(",").forEach((item) => {
         const key = item.trim();
-        if (key) finalStock[key] = 10;
+        if (key) finalStock[key] = 10; // Default qty
       });
     }
 
-    const {
-      data: { user },
-    } = await supabaseClient.auth.getUser();
-
-    // 2. ვიზუალების მასივის მომზადება
-    // თუ თეგები გვაქვს, ვიყენებთ მათ. თუ არა - ერთ ცალ null-ს.
     const visualsToUpload =
       Array.isArray(preview.visual_appearance) && preview.visual_appearance.length > 0
         ? preview.visual_appearance
         : [null];
 
-    // 3. მასიური ატვირთვა (თითო თეგზე ერთი ჩანაწერი ბაზაში)
-    const uploadPromises = visualsToUpload.map((visual) => {
+    // 4. MAIN LOOP: Upload Image -> Then Upload Product
+    const uploadPromises = visualsToUpload.map(async (visual) => {
+      let finalImageUrl = null;
+
+      // --- IMAGE UPLOAD LOGIC START ---
+      // Check if we have a matched image for this specific visual tag
+      if (visual && matchedImages[visual]) {
+        try {
+          const base64File = matchedImages[visual];
+          
+          // Clean base64 string
+          const base64Data = base64File.replace(/^data:image\/\w+;base64,/, "");
+          const buffer = Buffer.from(base64Data, "base64");
+
+          // Create unique path: user_id/timestamp_variant.jpg
+          const fileName = `${user.id}/${Date.now()}_${Math.random().toString(36).substring(7)}.jpg`;
+
+          // Upload to Supabase Storage
+          const { error: uploadError } = await supabaseClient.storage
+            .from("product-images") // ⚠️ Ensure this bucket exists and is Public
+            .upload(fileName, buffer, {
+              contentType: "image/jpeg",
+              upsert: true,
+            });
+
+          if (uploadError) {
+            console.error(`Failed to upload image for  ${visual}`, uploadError);
+          } else {
+            // Get Public URL
+            const { data: publicData } = supabaseClient.storage
+              .from("product-images")
+              .getPublicUrl(fileName);
+            
+            finalImageUrl = publicData.publicUrl;
+          }
+        } catch (imgErr) {
+          console.error("Image processing error:", imgErr);
+        }
+      }
+     
+
+     
       const finalProduct = {
         name: preview.name,
         brand: preview.brand,
         price: parseFloat(preview.price) || 0,
         description: preview.description,
-        visual_appearance: visual, // აქ ჩაჯდება "აბი" (Badge)
+        visual_appearance: visual, 
         stock: finalStock,
+        product_image_url: finalImageUrl, 
       };
 
+      // 6. Save to Database
       return uploadProduct(finalProduct, shopId, user.id);
     });
 
+    // Wait for all products (variants) to be uploaded
     const results = await Promise.all(uploadPromises);
 
-    // შეცდომების შემოწმება
+    // 7. Check for Errors
     const errors = results.filter((res) => res.error);
 
     if (errors.length === 0) {
+      // Success: Reset everything
       setPreview({
         name: "",
         brand: "",
         price: "",
         description: "",
-        visual_appearance: [], // მასივის გასუფთავება
+        visual_appearance: [],
         stock: "",
       });
       setText("");
       setPreview(null);
+      // Reset matched images state if you have one
+      if (typeof setMatchedImages === 'function') setMatchedImages({}); 
+      
       toast.success(`${visualsToUpload.length} პროდუქტი წარმატებით დაემატა!`);
       router.refresh();
     } else {
@@ -103,6 +153,11 @@ const saveProduct = async () => {
   } finally {
     setLoading(false);
   }
+};
+
+const handleImageMatch = ({ image, variant }) => {
+  setMatchedImages((prev) => ({ ...prev, [variant]: image }));
+  toast.success(`ფოტო მიება ვიზუალს: ${variant}`);
 };
 
   return (
@@ -192,33 +247,38 @@ const saveProduct = async () => {
               </label>
               <div className="flex flex-wrap gap-2 p-2 bg-white rounded-xl border border-gray-100 min-h-[50px] focus-within:border-green-400 transition">
                 {/* აქ გამოჩნდება უკვე დამატებული თეგები */}
-                {(Array.isArray(preview.visual_appearance) ? preview.visual_appearance : []).map(
-                  (tag, index) => (
-                    <span
-                      key={index}
-                      className="flex items-center gap-1 px-3 py-1 bg-green-50 text-green-700 text-sm rounded-lg border border-green-100"
+                {(Array.isArray(preview.visual_appearance)
+                  ? preview.visual_appearance
+                  : []
+                ).map((tag, index) => (
+                  <span
+                    key={index}
+                    className="flex items-center gap-1 px-3 py-1 bg-green-50 text-green-700 text-sm rounded-lg border border-green-100"
+                  >
+                    {tag}
+                    <button
+                      onClick={() => {
+                        const newVisuals = preview.visual_appearance.filter(
+                          (_, i) => i !== index,
+                        );
+                        setPreview({
+                          ...preview,
+                          visual_appearance: newVisuals,
+                        });
+                      }}
+                      className="hover:text-red-500 font-bold ml-1 cursor-pointer text-xs"
                     >
-                      {tag}
-                      <button
-                        onClick={() => {
-                          const newVisuals = preview.visual_appearance.filter(
-                            (_, i) => i !== index,
-                          );
-                          setPreview({ ...preview, visual_appearance: newVisuals });
-                        }}
-                        className="hover:text-red-500 font-bold ml-1 cursor-pointer text-xs"
-                      >
-                        ×
-                      </button>
-                    </span>
-                  ),
-                )}
+                      ×
+                    </button>
+                  </span>
+                ))}
 
                 {/* რეალური ინპუტი თეგების ჩასაწერად */}
                 <input
                   className="flex-1 outline-none p-1 min-w-[120px] text-sm"
                   placeholder={
-                    !preview.visual_appearance || preview.visual_appearance.length === 0
+                    !preview.visual_appearance ||
+                    preview.visual_appearance.length === 0
                       ? "მაგ: შავი, თეთრი..."
                       : ""
                   }
@@ -227,7 +287,9 @@ const saveProduct = async () => {
                       e.preventDefault();
                       const value = e.target.value.trim().replace(",", "");
                       if (value) {
-                        const currentVisuals = Array.isArray(preview.visual_appearance)
+                        const currentVisuals = Array.isArray(
+                          preview.visual_appearance,
+                        )
                           ? preview.visual_appearance
                           : [];
                         setPreview({
@@ -298,6 +360,30 @@ const saveProduct = async () => {
               />
             </div>
           </div>
+          {Array.isArray(preview.visual_appearance) &&
+            preview.visual_appearance.length > 0 && (
+              <ProductImageMatcher
+                variants={preview.visual_appearance}
+                onMatchConfirmed={handleImageMatch}
+              />
+            )}
+
+          {/* Optional: Show attached images */}
+          {Object.keys(matchedImages).length > 0 && (
+            <div className="flex gap-2 mt-2 overflow-x-auto pb-2">
+              {Object.entries(matchedImages).map(([variant, img]) => (
+                <div
+                  key={variant}
+                  className="relative w-12 h-12 rounded-lg border border-green-200 overflow-hidden flex-shrink-0 group"
+                >
+                  <Image src={img} alt={`${variant}`} className="w-full h-full object-cover" width={100} height={100} />
+                  <div className="absolute inset-0 bg-black/40 flex items-center justify-center text-[8px] text-white font-bold opacity-0 group-hover:opacity-100 transition">
+                    {variant}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
 
           <button
             onClick={saveProduct}
