@@ -55,8 +55,8 @@ export default function Hero() {
         </section>
 
         {/* 2. New Features Grid (Bento Style) */}
-        <section id="features" className="max-w-6xl mx-auto px-6 pb-32">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <section id="features" className="max-w-4xl mx-auto px-6 pb-32">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Feature 1: Auto Import */}
             <div className="bg-white p-8 rounded-[2rem] border border-gray-100 shadow-sm hover:shadow-md transition-all group">
               <div className="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
@@ -87,7 +87,7 @@ export default function Hero() {
             </div>
 
             {/* Feature 3: Meta Integration */}
-            <div className="bg-white p-8 rounded-[2rem] border border-gray-100 shadow-sm hover:shadow-md transition-all group">
+            {/* <div className="bg-white p-8 rounded-[2rem] border border-gray-100 shadow-sm hover:shadow-md transition-all group">
               <div className="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                 <Facebook className="text-blue-600" size={24} />
               </div>
@@ -98,7 +98,7 @@ export default function Hero() {
                 ოფიციალური ინტეგრაცია Meta-სთან. უსაფრთხო კავშირი Facebook და
                 Instagram გვერდებთან.
               </p>
-            </div>
+            </div>*/}
           </div>
         </section>
 

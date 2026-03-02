@@ -3,6 +3,7 @@ import { waitUntil } from "@vercel/functions";
 import { handleChatLogic } from "@/lib/meta-handlers/handleMessageEvent";
 import { handleFeedLogic } from "@/lib/meta-handlers/handleFeedEvents";
 import { handlePostLogic } from "@/lib/meta-handlers/handlePostEvent";
+import { handleImageLogic } from "@/lib/meta-handlers/handleImageLogic";
 
 export async function GET(request) {
   const { searchParams } = new URL(request.url);
@@ -39,11 +40,31 @@ export async function POST(request) {
 
     // 🚀 ვარკვევთ რა ტიპის ივენთია
     if (entry?.messaging) {
-      waitUntil(
-        handleChatLogic(body)
-          .then(() => console.log("✅ Message processed"))
-          .catch((err) => console.error("❌ Messenger Error:", err)),
-      );
+      const messagingEvent = entry.messaging[0];
+      const message = messagingEvent.message;
+
+      // 🔍 ვამოწმებთ: არის თუ არა სურათი?
+      const isImage = message?.attachments?.[0]?.type === "image";
+
+      if (isImage) {
+        console.log("📸 Image Message Detected! Routing to Image Handler...");
+
+        // 👉 აქ ვიძახებთ ახალ, სპეციალურ ფუნქციას სურათებისთვის
+        waitUntil(
+          handleImageLogic(body)
+            .then(() => console.log("✅ Image Logic processed"))
+            .catch((err) => console.error("❌ Image Logic Error:", err)),
+        );
+      } else {
+        console.log("💬 Text Message Detected! Routing to Chat Handler...");
+
+        // 👉 ეს რჩება ძველი ტექსტისთვის
+        waitUntil(
+          handleChatLogic(body)
+            .then(() => console.log("✅ Chat Logic processed"))
+            .catch((err) => console.error("❌ Chat Logic Error:", err)),
+        );
+      }
     }
 
     // 2. Feed (აქ შემოდის პოსტიც და კომენტარიც!)
