@@ -6,8 +6,9 @@ export default function FacebookLoginButton({userId}) {
    
     const appId = process.env.NEXT_PUBLIC_FACEBOOK_BUSINESSAPP_ID;
     const configId = process.env.NEXT_PUBLIC_CONFIGURATION_ID;
+    const baseUrl = process.env.NEXT_PUBLIC_BASEURL; 
     const redirectUri = encodeURIComponent(
-      "https://posthippocampal-lucently-sang.ngrok-free.dev/api/auth/facebook",
+      `${baseUrl}/api/auth/facebook`,
     );
     
 
