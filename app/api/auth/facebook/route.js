@@ -75,10 +75,11 @@ const pagesUrl = `https://graph.facebook.com/v21.0/me/accounts?fields=name,acces
     }
 
     // Success! Send them back to your UI.
-    const host = request.headers.get("host"); // იღებს 23d0d72e7a14.ngrok-free.app-ს
-    const protocol = request.headers.get("x-forwarded-proto") || "http";
-    const base = `${protocol}://${host}`;
-
+    //const host = request.headers.get("host"); // იღებს 23d0d72e7a14.ngrok-free.app-ს
+    //const protocol = request.headers.get("x-forwarded-proto") || "http";
+    //const base = `${protocol}://${host}`;
+    const base = process.env.NEXT_PUBLIC_BASEURL || "https://salesagent.ge";
+    
     return NextResponse.redirect(new URL("/dashboard?status=connected", base));
   } catch (error) {
     console.error("Auth Error:", error.message);
