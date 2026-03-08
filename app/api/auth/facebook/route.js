@@ -18,11 +18,13 @@ export async function GET(request) {
   try {
     // 1. EXCHANGE CODE FOR SHORT-LIVED USER TOKEN (Valid for ~2 hours)
     // This is the first "handshake" to prove the login code is valid.
+    console.log("CLIENT ID SAME AS BUSSINES APP ID IS:", process.env.FACEBOOK_BUSINESSAPP_ID);
     const shortTokenUrl = `https://graph.facebook.com/v21.0/oauth/access_token?client_id=${process.env.FACEBOOK_BUSINESSAPP_ID}&client_secret=${process.env.FACEBOOK_APP_SECRET}&redirect_uri=${process.env.FACEBOOK_REDIRECT_URI}&code=${code}`;
-  
+    
     const shortTokenRes = await fetch(shortTokenUrl);
     const shortTokenData = await shortTokenRes.json();
-
+    console.log("SHORT TOKEN URL IS:", shortTokenUrl);
+    
     if (shortTokenData.error) throw new Error(shortTokenData.error.message);
     const shortUserToken = shortTokenData.access_token;
 
