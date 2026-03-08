@@ -12,7 +12,7 @@ const nextConfig = {
         port: "",
         pathname: "/storage/v1/object/public/**",
       },
-      // ასევე შეგიძლია დაამატო Meta-ს დომენიც, თუ "ლაივ" ლინკებსაც იყენებ ხანდახან
+      // Your current Meta domains
       {
         protocol: "https",
         hostname: "**.fbcdn.net",
@@ -20,6 +20,28 @@ const nextConfig = {
       {
         protocol: "https",
         hostname: "**.cdninstagram.com",
+      },
+      // Added specific patterns for deep subdomains like scontent.ftbs4-2.fna
+      {
+        protocol: "https",
+        hostname: "scontent.**.fna.fbcdn.net",
+        pathname: "**",
+      },
+      {
+        protocol: "https",
+        hostname: "scontent.**.cdninstagram.com",
+        pathname: "**",
+      },
+      // Added generic catch-all for other Meta CDN variations
+      {
+        protocol: "https",
+        hostname: "*.fbcdn.net",
+        pathname: "**",
+      },
+      {
+        protocol: "https",
+        hostname: "*.cdninstagram.com",
+        pathname: "**",
       },
     ],
   },
