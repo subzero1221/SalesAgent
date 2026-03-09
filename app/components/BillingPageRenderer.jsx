@@ -1,12 +1,10 @@
 import PricingCard from "@/app/components/PricingCard";
 
-export default function BillingPageRenderer({ shop }) {
+export default function BillingPageRenderer({ shop, userId, subscription }) {
   // 1. ვარკვევთ, რომელია აქტიური პლანი
   // ვეძებთ აქტიურ გამოწერას (თუ ვერ იპოვა, ესე იგი 'demo'-ზეა)
-  const activeSubscription = shop.subscriptions?.find(
-    (sub) => sub.status === "active",
-  );
-  const currentPlanName = activeSubscription?.plan_type || "demo";
+  const activeSubscription = subscription?.status === "active" ? subscription : null;
+  const currentPlanName = activeSubscription ? activeSubscription.plan_type : "demo";
 
   // 2. შენი ახალი 4 პლანი
   const plans = [
@@ -103,6 +101,7 @@ export default function BillingPageRenderer({ shop }) {
             // ვამოწმებთ, არის თუ არა ეს პლანი მიმდინარე
             isCurrent={currentPlanName === plan.name}
             shopId={shop.id}
+            userId={userId}
           />
         ))}
       </div>

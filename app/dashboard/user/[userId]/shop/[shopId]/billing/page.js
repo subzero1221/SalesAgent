@@ -1,5 +1,6 @@
 import BillingPageRenderer from "@/app/components/BillingPageRenderer";
 import {getShopById, getShopWithActiveSubscription } from "@/lib/actions/shopActions";
+import { getSubscriptionByShopId } from "@/lib/actions/subscriptionActions";
 
 export async function generateMetadata({ params }) {
   const { shopId } = await params;
@@ -14,8 +15,10 @@ export async function generateMetadata({ params }) {
 export default async function BillingPages({ params }) {
   const resolvedParams = await params;
   const shopId = resolvedParams.shopId;
+  const userId = resolvedParams.userId;
 
   const shop = await getShopWithActiveSubscription(shopId);
+  const subscription = await getSubscriptionByShopId(shopId);
 
   // თუ მაღაზია ვერ მოიძებნა, რენდერერამდე ნუ მიუშვებ
   if (!shop) {
@@ -26,5 +29,5 @@ export default async function BillingPages({ params }) {
     );
   }
 
-  return <BillingPageRenderer shop={shop} />;
+  return <BillingPageRenderer shop={shop} userId={userId} subscription={subscription} />;
 }

@@ -2,7 +2,7 @@
 import { useState } from "react";
 import PaymentModal from "./PaymentModal"; // დარწმუნდი, რომ ეს ფაილი სწორ ადგილასაა
 
-export default function PricingCard({ plan, isCurrent, shopId }) {
+export default function PricingCard({ plan, isCurrent, shopId, userId }) {
   const [loading, setLoading] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -24,6 +24,7 @@ export default function PricingCard({ plan, isCurrent, shopId }) {
         body: JSON.stringify({
           shopId: shopId,
           plan: plan.name,
+          userId: userId,
         }),
       });
 
@@ -111,7 +112,6 @@ export default function PricingCard({ plan, isCurrent, shopId }) {
         </button>
       </div>
 
-      {/* Payment Modal Component */}
       <PaymentModal
         isOpen={isModalOpen}
         onClose={() => !loading && setIsModalOpen(false)}
