@@ -2,7 +2,7 @@
 
 export default function ConfirmModal({ isOpen, onClose, title, children }) {
   if (!isOpen) return null;
-
+ 
   return (
     <div className="fixed inset-0 bg-black/40 backdrop-blur-[2px] flex items-center justify-center z-[100] p-4 transition-all">
       {/* Backdrop-ზე დაჭერით იხურება */}
